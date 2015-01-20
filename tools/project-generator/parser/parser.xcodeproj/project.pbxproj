@@ -23,6 +23,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E4C80ED31A6AE19200119AB3 /* codeblocks.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = codeblocks.py; path = ../source/codeblocks.py; sourceTree = "<group>"; };
+		E4C80ED51A6AE19200119AB3 /* codelite.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = codelite.py; path = ../source/codelite.py; sourceTree = "<group>"; };
+		E4C80ED71A6AE19200119AB3 /* debug.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = debug.py; path = ../source/debug.py; sourceTree = "<group>"; };
+		E4C80ED81A6AE19200119AB3 /* generate.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = generate.py; path = ../source/generate.py; sourceTree = "<group>"; };
+		E4C80ED91A6AE19200119AB3 /* makefile.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = makefile.py; path = ../source/makefile.py; sourceTree = "<group>"; };
+		E4C80EDB1A6AE19200119AB3 /* project_object.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = project_object.py; path = ../source/project_object.py; sourceTree = "<group>"; };
+		E4C80EDD1A6AE19200119AB3 /* project_parser.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = project_parser.py; path = ../source/project_parser.py; sourceTree = "<group>"; };
+		E4C80EDF1A6AE19200119AB3 /* project_path.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = project_path.py; path = ../source/project_path.py; sourceTree = "<group>"; };
+		E4C80EE11A6AE19200119AB3 /* project_writer.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = project_writer.py; path = ../source/project_writer.py; sourceTree = "<group>"; };
+		E4C80EE31A6AE19200119AB3 /* project.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = project.py; path = ../source/project.py; sourceTree = "<group>"; };
+		E4C80EE51A6AE19200119AB3 /* visualc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = visualc.py; path = ../source/visualc.py; sourceTree = "<group>"; };
+		E4C80EE71A6AE19200119AB3 /* xcode.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = xcode.py; path = ../source/xcode.py; sourceTree = "<group>"; };
 		E4D9B49E1A65FD520068012F /* parser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = parser; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4D9B4CF1A6824C10068012F /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -38,9 +50,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E4C80EEB1A6AFD3300119AB3 /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				E4C80ED31A6AE19200119AB3 /* codeblocks.py */,
+				E4C80ED51A6AE19200119AB3 /* codelite.py */,
+				E4C80ED71A6AE19200119AB3 /* debug.py */,
+				E4C80ED81A6AE19200119AB3 /* generate.py */,
+				E4C80ED91A6AE19200119AB3 /* makefile.py */,
+				E4C80EDB1A6AE19200119AB3 /* project_object.py */,
+				E4C80EDD1A6AE19200119AB3 /* project_parser.py */,
+				E4C80EDF1A6AE19200119AB3 /* project_path.py */,
+				E4C80EE11A6AE19200119AB3 /* project_writer.py */,
+				E4C80EE31A6AE19200119AB3 /* project.py */,
+				E4C80EE51A6AE19200119AB3 /* visualc.py */,
+				E4C80EE71A6AE19200119AB3 /* xcode.py */,
+			);
+			name = scripts;
+			sourceTree = "<group>";
+		};
 		E4D9B4951A65FD520068012F = {
 			isa = PBXGroup;
 			children = (
+				E4C80EEB1A6AFD3300119AB3 /* scripts */,
 				E4D9B4CE1A6824C10068012F /* src */,
 				E4D9B49F1A65FD520068012F /* Products */,
 			);

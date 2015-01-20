@@ -154,10 +154,14 @@ class Parser:
 				self.parse_target_sub_nodes(sub_node, sub_config)
 
 	def convert_path(self, path):
-		# new_path = project_path.Path(self.root_directory).join(path)
-		# new_path = new_path.replace("\\", "/")
-		# return new_path
-		return path
+		if path[0] != "/":
+			build_dir = self.root_directory + self.platform_string + "/"
+			build_dir = build_dir.replace("\\", "/")
+			new_path = project_path.Path(path).relative(build_dir)
+			new_path = new_path.replace("\\", "/")
+		else:
+			new_path = path
+		return new_path
 
 	def parse_object(self, o, node):
 		attributes = node.attributes
