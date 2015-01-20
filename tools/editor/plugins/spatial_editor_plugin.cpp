@@ -3237,7 +3237,8 @@ void SpatialEditor::_finish_indicators() {
 		VisualServer::get_singleton()->free(grid_instance[i]);
 		VisualServer::get_singleton()->free(grid[i]);
 	}
-	VisualServer::get_singleton()->free(light_instance);
+	if (light_instance.is_valid())
+		VisualServer::get_singleton()->free(light_instance);
 	VisualServer::get_singleton()->free(light);
 	//VisualServer::get_singleton()->free(poly);
 	//VisualServer::get_singleton()->free(indicators_instance);
