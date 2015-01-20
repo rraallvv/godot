@@ -258,6 +258,9 @@ class PBXFileReference(XcodeProjectObject):
 		if extension == "cpp":
 			self.lastKnownFileType = "sourcecode.cpp.cpp"
 			self.sourceTree = "SOURCE_ROOT"
+		elif extension == "cc":
+			self.lastKnownFileType = "sourcecode.cc.cc"
+			self.sourceTree = "SOURCE_ROOT"
 		elif extension == "c":
 			self.lastKnownFileType = "sourcecode.c.c"
 			self.sourceTree = "SOURCE_ROOT"
@@ -494,7 +497,7 @@ class XcodeObjects(XcodeProjectSectionObject):
 		self.build_configurations = []
 		self.configuration_lists = []
 
-		extensions = ["cpp", "c", "h", "pch", "xib", "storyboard", "m", "mm"]
+		extensions = ["cpp", "c", "cc", "h", "pch", "xib", "storyboard", "m", "mm"]
 		self.generate_build_files(source_root, project.settings.source_filenames(), extensions, object_factory, default_groups.classes)
 		extensions = ["plist"]
 		self.generate_file_references(project.settings.source_filenames(), extensions, object_factory, default_groups.resources)
@@ -818,7 +821,7 @@ class XcodeObjects(XcodeProjectSectionObject):
 		return object_factory.create(PBXNativeTarget, name, product_file_reference, target_configuration_list, build_phases, product_type)
 
 	def all_source_build_files(self, project):
-		return self.build_files_with_extensions(["cpp", "c", "m", "mm"])
+		return self.build_files_with_extensions(["cpp", "c", "cc", "m", "mm"])
 
 	def all_header_build_files(self, project):
 		return self.build_files_with_extensions(["pch", "h"])

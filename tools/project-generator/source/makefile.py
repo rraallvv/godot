@@ -52,7 +52,7 @@ class Makefile:
 			path = project_path.Path(source)
 			relative_source = path.relative(self.source_root)
 			file_without_extension, extension = os.path.splitext(relative_source)
-			if extension == ".cpp" or extension == ".c":
+			if extension == ".cpp" or extension == ".c" or extension == ".cc":
 				sources.append(relative_source)
 				objects.append(file_without_extension + ".o")
 
@@ -91,6 +91,7 @@ class Makefile:
 		self.output_target_dependencies("-include $(objects:.o=.d)", [], [])
 		self.output_target_dependencies("$(executable)", ["$(objects)"], ["@echo Linking $@", "@$(cc) -o $@  $(objects) $(ldflags)"])
 		self.output_target_dependencies(".c.o", [], ["echo Compiling c $@", "@$(c) $(cflags) $< -o $@"])
+		self.output_target_dependencies(".cc.o", [], ["echo Compiling c++ $@", "@$(cc) $(cflags) $< -o $@"])
 		self.output_target_dependencies(".cpp.o", [], ["echo Compiling c++ $@", "@$(cc) $(cflags) $< -o $@"])
 		self.output_target_dependencies("depend", [], ["makedepend -f " + self.output.target_path + "Makefile -- $(cflags) -- $(sources) -I" + include_string])
 		self.close()

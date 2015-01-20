@@ -106,6 +106,8 @@ class Project(project_object.WriterObject):
 				files_to_include_item_group.files.append(ClInclude(relative_filename))
 			elif extension == "cpp":
 				files_to_compile_item_group.files.append(ClCompile(relative_filename))
+			elif extension == "cc":
+				files_to_compile_item_group.files.append(ClCompile(relative_filename))
 			elif extension == "c":
 				c = ClCompile(relative_filename)
 				c.other = {"CompileAs": "CompileAsCpp" }
