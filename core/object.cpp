@@ -1713,6 +1713,12 @@ void ObjectDB::cleanup() {
 	if (instances.size()) {
 	
 		WARN_PRINT("ObjectDB Instances still exist!");		
+#ifdef DEBUG_ENABLED
+		List<uint32_t> id_list;
+		instances.get_key_list(&id_list);
+		for(List<uint32_t>::Element *E=id_list.front();E;E=E->next())
+			print_line(itos(E->get())+" "+instances[E->get()]->get_type());
+#endif
 	}
 	instances.clear();
 	instance_checks.clear();
