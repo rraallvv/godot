@@ -7,7 +7,6 @@ def is_active():
 	
 def get_name():
 	return "iSIM"
-	
 
 def can_build():
 
@@ -22,7 +21,7 @@ def get_opts():
 	return [
 		('ISIMPLATFORM', 'name of the iphone platform', 'iPhoneSimulator'),
 		('ISIMPATH', 'the path to iphone toolchain', '/Applications/Xcode.app/Contents/Developer/Platforms/${ISIMPLATFORM}.platform'),
-		('ISIMSDK', 'path to the iphone SDK', '$ISIMPATH/Developer/SDKs/${ISIMPLATFORM}7.1.sdk'),
+		('ISIMSDK', 'path to the iphone SDK', '$ISIMPATH/Developer/SDKs/${ISIMPLATFORM}.sdk'),
 		('game_center', 'Support for game center', 'yes'),
 		('store_kit', 'Support for in-app store', 'yes'),
 		('ios_gles22_override', 'Force GLES2.0 on iOS', 'yes'),
@@ -97,4 +96,8 @@ def configure(env):
 	env['ENV']['CODESIGN_ALLOCATE'] = '/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate'
 	env.Append(CPPFLAGS=['-DIPHONE_ENABLED', '-DUNIX_ENABLED', '-DGLES2_ENABLED', '-fexceptions'])
 
+	import methods
+	env.Append( BUILDERS = { 'GLSL120' : env.Builder(action = methods.build_legacygl_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )
+	env.Append( BUILDERS = { 'GLSL' : env.Builder(action = methods.build_glsl_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )
+	env.Append( BUILDERS = { 'GLSL120GLES' : env.Builder(action = methods.build_gles2_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )
 
