@@ -71,6 +71,8 @@ public:
 	virtual AABB get_aabb() const;
 
 	Quad();
+	~Quad();
+
 };
 
 
