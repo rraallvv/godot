@@ -407,7 +407,7 @@ int main(int argc, char** argv) {
 
 
 	string inputProjectPath = "../../";
-	myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch"};
+	myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework"};
 
 	// executable targets
 	for ( auto tit = excs.begin(); tit != excs.end(); ++tit ) {
@@ -451,7 +451,7 @@ int main(int argc, char** argv) {
 			bool exclude = false;
 			for (auto eflag = excludeFlags.begin(); eflag != excludeFlags.end(); ++eflag) {
 
-				if ((flag.compare(*eflag)==0) || (flag.find(*eflag+" ")!=string::npos))
+				if (flag.find(*eflag)==0)
 					exclude = true;
 			}
 			if (!exclude)
@@ -542,7 +542,7 @@ int main(int argc, char** argv) {
 				bool exclude = false;
 				for (auto eflag = excludeFlags.begin(); eflag != excludeFlags.end(); ++eflag) {
 
-					if ((flag.compare(*eflag)==0) || (flag.find(*eflag+" ")!=string::npos))
+					if (flag.find(*eflag)==0)
 						exclude = true;
 				}
 				if (!exclude)
