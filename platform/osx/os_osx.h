@@ -68,7 +68,7 @@ public:
 
 	IP_Unix *ip_unix;
 
-	AudioDriverOSX audio_driver_osx;
+	AudioDriverOSX *audio_driver_osx;
 	AudioServerSW *audio_server;
 	SampleManagerMallocSW *sample_manager;
 	SpatialSoundServerSW *spatial_sound_server;

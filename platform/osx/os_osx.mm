@@ -973,11 +973,6 @@ void OS_OSX::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 	bool use_gl2=p_video_driver!=1;
 
-
-
-	AudioDriverManagerSW::add_driver(&audio_driver_osx);
-
-
 	rasterizer = instance_RasterizerGLES2();
 
 	visual_server = memnew( VisualServerRaster(rasterizer) );
@@ -989,6 +984,8 @@ void OS_OSX::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 	visual_server->init();
 	visual_server->cursor_set_visible(false, 0);
 
+	audio_driver_osx = memnew(AudioDriverOSX);
+	AudioDriverManagerSW::add_driver(audio_driver_osx);
 	AudioDriverManagerSW::get_driver(p_audio_driver)->set_singleton();
 
 	if (AudioDriverManagerSW::get_driver(p_audio_driver)->init()!=OK) {
