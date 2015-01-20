@@ -3926,7 +3926,7 @@ void VisualServerRaster::free( RID p_rid ) {
 
 	VS_CHANGED;
 
-	if (rasterizer->is_texture(p_rid) || rasterizer->is_material(p_rid) ||  rasterizer->is_shader(p_rid)) {
+	if (rasterizer->is_texture(p_rid) || rasterizer->is_material(p_rid) ||  rasterizer->is_shader(p_rid) || rasterizer->is_environment(p_rid)) {
 	
 		rasterizer->free(p_rid);
 	} else if (rasterizer->is_skeleton(p_rid)) {
