@@ -95,6 +95,32 @@ string trim(string s, const string start, const string end, bool invert=false) {
 typedef vector<string> myvector;
 typedef set<string> myset;
 
+bool getline(const string &str, string &sub, const string delim, size_t &from) {
+
+	sub = "";
+
+	if (from == string::npos || from >= str.length())
+		return false;
+
+	size_t pos = str.find(delim, from);
+
+	if (pos != string::npos) {
+		if (from == 0) {
+			for (size_t i=1; i<delim.length(); ++i) {
+				if (delim.substr(i, delim.length()-i).compare(str.substr(0,delim.length()-i))==0)
+					from = from + delim.length()-i;
+			}
+		}
+		sub = str.substr(from, pos-from);
+		from = pos + delim.length();
+	} else {
+		sub = str.substr(from);
+		from = string::npos;
+	}
+
+	return true;
+}
+
 void findExeComponents(unordered_map<string,myvector> &objects,
 					   myvector &list,
 					   unordered_map<string,myset> &files,
@@ -112,10 +138,10 @@ void findExeComponents(unordered_map<string,myvector> &objects,
 		myset fs;
 		myset is;
 
-		stringstream ss(rawflags[*lit]);
 		string s;
+		size_t pos = 0U;
 
-		while (getline(ss, s, '-')) {
+		while (getline(rawflags[*lit], s, " -", pos)) {
 			s = trim(s, " \t", " \t");
 			if (s.length()) {
 				if (s.find("/")==string::npos) {
@@ -188,10 +214,9 @@ void findLibComponents(unordered_map<string,myvector> &objects,
 				l.insert(*eit);
 			string f = rawflags[*it];
 
-			stringstream ss(f);
 			string s;
-
-			while (getline(ss, s, '-')) {
+			size_t pos = 0U;
+			while (getline(f, s, " -", pos)) {
 				s = trim(s, " \t", " \t");
 				if (s.length()) {
 					if (s[0]=='I')
@@ -205,6 +230,18 @@ void findLibComponents(unordered_map<string,myvector> &objects,
 		sources[*lit]=l;
 		flags[*lit]=fs;
 		includes[*lit]=is;
+	}
+}
+
+void strReplace( string &s, const string &search, const string &replace )
+{
+	for( size_t pos = 0; ; pos += replace.length() )
+	{
+		 pos = s.find( search, pos );
+			if( pos == string::npos ) break;
+
+		 s.erase( pos, search.length() );
+		 s.insert( pos, replace );
 	}
 }
 
@@ -282,11 +319,10 @@ int main(int argc, char** argv) {
 				rawflags[obj]=value;
 
 
-				stringstream ss(value);
 				string s;
 				myvector objs;
-
-				while (getline(ss, s, '-')) {
+				size_t pos = 0U;
+				while (getline(value, s, " -", pos)) {
 					s = trim(s, " \t", " \t");
 					if (s.length() && s.find("/")!=string::npos) {
 						stringstream ssi(s);
@@ -330,11 +366,11 @@ int main(int argc, char** argv) {
 				rawflags[obj]=value = value.substr(0, pos);
 				//cout << value << endl;
 
-				stringstream ss(value);
 				string s;
 				myvector objs;
+				size_t posl = 0U;
 
-				while (getline(ss, s, '-')) {
+				while (getline(value, s, " -", posl)) {
 					s = trim(s, " \t", " \t");
 					if (s.length() && s.find("/")!=string::npos) {
 						stringstream ssi(s);
@@ -470,8 +506,10 @@ int main(int argc, char** argv) {
 				if (flag.find(*eflag)==0)
 					exclude = true;
 			}
-			if (!exclude)
+			if (!exclude) {
+				strReplace(flag, "\"", "");
 				out << flag << " ";
+			}
 		}
 		out << "\" />" << endl;
 
@@ -561,8 +599,10 @@ int main(int argc, char** argv) {
 					if (flag.find(*eflag)==0)
 						exclude = true;
 				}
-				if (!exclude)
+				if (!exclude) {
+					strReplace(flag, "\"", "");
 					out << flag << " ";
+				}
 			}
 			out << "\" />" << endl;
 
