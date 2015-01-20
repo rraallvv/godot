@@ -9194,13 +9194,16 @@ void RasterizerGLES2::_update_framebuffer() {
 
 			glDeleteTextures(1,&framebuffer.luminance[i].color);
 			glDeleteFramebuffers(1,&framebuffer.luminance[i].fbo);
-
+			framebuffer.luminance[i].color=0;
+			framebuffer.luminance[i].fbo=0;
 		}
 
 		for(int i=0;i<3;i++) {
 
 			glDeleteTextures(1,&framebuffer.blur[i].color);
 			glDeleteFramebuffers(1,&framebuffer.blur[i].fbo);
+			framebuffer.blur[i].color=0;
+			framebuffer.blur[i].fbo=0;
 		}
 
 		glDeleteTextures(1,&framebuffer.sample_color);
@@ -9340,8 +9343,6 @@ void RasterizerGLES2::_update_framebuffer() {
 			if (framebuffer.blur[i].fbo) {
 				glDeleteFramebuffers(1,&framebuffer.blur[i].fbo);
 				glDeleteTextures(1,&framebuffer.blur[i].color);
-				framebuffer.blur[i].fbo=0;
-				framebuffer.blur[i].color=0;
 			}
 		}
 
@@ -9384,8 +9385,10 @@ void RasterizerGLES2::_update_framebuffer() {
 
 		for(int i=0;i<framebuffer.luminance.size();i++) {
 
-			glDeleteFramebuffers(1,&framebuffer.luminance[i].fbo);
-			glDeleteTextures(1,&framebuffer.luminance[i].color);
+			if (framebuffer.luminance[i].fbo) {
+				glDeleteFramebuffers(1,&framebuffer.luminance[i].fbo);
+				glDeleteTextures(1,&framebuffer.luminance[i].color);
+			}
 		}
 
 		framebuffer.luminance.clear();
