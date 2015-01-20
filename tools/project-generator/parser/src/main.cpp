@@ -95,20 +95,30 @@ string trim(string s, const string start, const string end, bool invert=false) {
 typedef vector<string> myvector;
 typedef set<string> myset;
 
-bool getline(const string &str, string &sub, const string delim, size_t &from) {
+bool getline(const string &str, string &sub, const myvector delimiters, size_t &from) {
 
 	sub = "";
 
 	if (from == string::npos || from >= str.length())
 		return false;
 
-	size_t pos = str.find(delim, from);
+	string delim;
+
+	size_t pos = string::npos;
+
+	for (auto d = delimiters.begin(); d != delimiters.end(); ++d) {
+		size_t p = str.find(*d, from);
+		if (p < pos) {
+			pos = p;
+			delim = *d;
+		}
+	}
 
 	if (pos != string::npos) {
-		if (from == 0) {
-			for (size_t i=1; i<delim.length(); ++i) {
-				if (delim.substr(i, delim.length()-i).compare(str.substr(0,delim.length()-i))==0)
-					from = from + delim.length()-i;
+		for (size_t i=1; i<delim.length(); ++i) {
+			if (delim.substr(i, delim.length()-i).compare(str.substr(from,delim.length()-i))==0) {
+				from = from + delim.length()-i;
+				break;
 			}
 		}
 		sub = str.substr(from, pos-from);
@@ -141,7 +151,7 @@ void findExeComponents(unordered_map<string,myvector> &objects,
 		string s;
 		size_t pos = 0U;
 
-		while (getline(rawflags[*lit], s, " -", pos)) {
+		while (getline(rawflags[*lit], s, {" -", ","}, pos)) {
 			s = trim(s, " \t", " \t");
 			if (s.length()) {
 				if (s.find("/")==string::npos) {
@@ -216,7 +226,7 @@ void findLibComponents(unordered_map<string,myvector> &objects,
 
 			string s;
 			size_t pos = 0U;
-			while (getline(f, s, " -", pos)) {
+			while (getline(f, s, {" -", ","}, pos)) {
 				s = trim(s, " \t", " \t");
 				if (s.length()) {
 					if (s[0]=='I')
@@ -247,6 +257,11 @@ void strReplace( string &s, const string &search, const string &replace )
 
 #pragma mark -
 
+string platform = "ios";
+myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
+string inputProjectPath = "../../";
+myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework"};
+
 int main(int argc, char** argv) {
 
 	ifstream t;
@@ -260,8 +275,6 @@ int main(int argc, char** argv) {
 			return errno;
 		}
 	}
-
-	string platform = "ios";
 
 	inputFile = string(argv[1]);
 	size_t pos = inputFile.find_last_of("/\\");
@@ -287,8 +300,6 @@ int main(int argc, char** argv) {
 	unordered_map<string,myset> linkLibs;
 	myvector objFiles;
 	string prevLib;
-
-	myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
 
 	while (getline(stream, line)) {
 
@@ -322,7 +333,7 @@ int main(int argc, char** argv) {
 				string s;
 				myvector objs;
 				size_t pos = 0U;
-				while (getline(value, s, " -", pos)) {
+				while (getline(value, s, {" -", ","}, pos)) {
 					s = trim(s, " \t", " \t");
 					if (s.length() && s.find("/")!=string::npos) {
 						stringstream ssi(s);
@@ -370,7 +381,7 @@ int main(int argc, char** argv) {
 				myvector objs;
 				size_t posl = 0U;
 
-				while (getline(value, s, " -", posl)) {
+				while (getline(value, s, {" -", ","}, posl)) {
 					s = trim(s, " \t", " \t");
 					if (s.length() && s.find("/")!=string::npos) {
 						stringstream ssi(s);
@@ -457,9 +468,6 @@ int main(int argc, char** argv) {
 	return 0;
 #endif
 
-
-	string inputProjectPath = "../../";
-	myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework"};
 
 	// executable targets
 	for ( auto tit = excs.begin(); tit != excs.end(); ++tit ) {
