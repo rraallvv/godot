@@ -17,7 +17,7 @@ def Export(*vars, **kw):
 		if (call_stack[-1].globals['__SkipBuild']):
 			for command in __CommandsList:
 				if locals()[var].has_key(command):
-					locals()[var][command] = 'echo > nul ||' + locals()[var][command]
+					locals()[var][command] = 'echo > nul || ' + locals()[var][command]
 	call_stack[-1].globals.update(kw)
 	__Export(locals(), kw)
 
@@ -74,7 +74,8 @@ elif (os.name=="nt"):
     if (os.getenv("VSINSTALLDIR")==None):
 	custom_tools=['mingw']
 
-env_base=Environment(tools=custom_tools,ENV = {'PATH' : os.environ['PATH']},CCCOMSTR = "Compiling static object $TARGET",CXXCOMSTR = "Compiling static object $TARGET",RANLIBCOMSTR = "Indexing $TARGET",ARCOMSTR = "Archiving $TARGET",ASCOMSTR = "Assembling $TARGET",LINKCOMSTR = "Linking $TARGET");
+env_base=Environment(tools=custom_tools,ENV = {'PATH' : os.environ['PATH']});
+
 #env_base=Environment(tools=custom_tools);
 env_base.global_defaults=global_defaults
 env_base.android_source_modules=[]
@@ -132,6 +133,7 @@ opts.Add('disable_3d', 'Disable 3D nodes for smaller executable (yes/no)', "no")
 opts.Add('disable_advanced_gui', 'Disable advance 3D gui nodes and behaviors (yes/no)', "no")
 opts.Add('colored', 'Enable colored output for the compilation (yes/no)', 'no')
 opts.Add('skip_build', 'Skip the build process generating only the platform dependent sources (yes/no)', "no")
+opts.Add('echo', 'Echo the command-line entries for the build process (yes/no)', "no")
 
 # add platform specific options
 
@@ -320,6 +322,9 @@ if selected_platform in platform_list:
 
 	if (env['skip_build']=='yes'):
 		__SkipBuild = True
+
+	if (env['echo']=='no'):
+		env.Append(CCCOMSTR = "Compiling static object $TARGET",CXXCOMSTR = "Compiling static object $TARGET",RANLIBCOMSTR = "Indexing $TARGET",ARCOMSTR = "Archiving $TARGET",ASCOMSTR = "Assembling $TARGET",LINKCOMSTR = "Linking $TARGET");
 
 	Export('env')
 
