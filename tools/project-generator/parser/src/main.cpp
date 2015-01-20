@@ -165,8 +165,11 @@ void findExeComponents(unordered_map<string,myvector> &objects,
 						if (si.length()) {
 							if (si.find("/")==string::npos) {
 								if (prev.find("framework")!=string::npos) {
-									//cout << rawflags[*lit] << endl;
 									fs.insert("framework " + si);
+								} else if (prev.find("isysroot")!=string::npos) {
+									fs.insert("isysroot " + si);
+								} else if (si.find("framework")==string::npos && si.find("isysroot")==string::npos) {
+									fs.insert(si);
 								}
 							} else {
 								//		cout << si << endl;
@@ -228,8 +231,10 @@ void findLibComponents(unordered_map<string,myvector> &objects,
 			size_t pos = 0U;
 			while (getline(f, s, {" -", ","}, pos)) {
 				if (s.length()) {
-					if (s[0]=='I')
+					if (s[0]=='I') {
+						//cout << "<<<" << s << endl;
 						is.insert(s.substr(1, s.length()-1));
+					}
 					else
 						fs.insert(s);
 				}
@@ -466,9 +471,9 @@ int main(int argc, char** argv) {
 
 #if 0
 	cout << "******** objects:" << endl;
-	for ( auto lit = objects.begin(); lit != objects.end(); ++lit ) {
-		//cout << *lit << endl;
-		myvector objs = lit->second;
+	for ( auto lit = linkLibs.begin(); lit != linkLibs.end(); ++lit ) {
+		cout << lit->first << endl;
+		myset objs = includes[lit->first];
 		for ( auto it = objs.begin(); it != objs.end(); ++it ) {
 			cout << *it << endl;
 		}
@@ -500,11 +505,20 @@ int main(int argc, char** argv) {
 		// include paths
 		for ( auto it = includes[*tit].begin(); it != includes[*tit].end(); ++it) {
 
-			string path = outputDir + inputProjectPath + *it;
+			string path;
 			struct stat info;
-			if (!stat( path.c_str(), &info )) {
-				out << "\t<header directory=\"" << inputProjectPath + *it << "\" />" << endl;
-				//cout << path << endl;
+			if ((*it).find_first_of("/\\")==0) {
+				path = *it;
+				if (!stat( path.c_str(), &info )) {
+					out << "\t<header directory=\"" << path << "\" />" << endl;
+					//cout << path << endl;
+				}
+			} else {
+				path = inputProjectPath + *it;
+				if (!stat( (outputDir + path).c_str(), &info )) {
+					out << "\t<header directory=\"" << path << "\" />" << endl;
+					//cout << path << endl;
+				}
 			}
 		}
 
@@ -560,7 +574,7 @@ int main(int argc, char** argv) {
 
 		out << endl;
 
-		out << "\t<platform name=\"mac_os_x\">" << endl;
+		out << "\t<platform name=\"" << platform << "\">" << endl;
 
 		for (auto it = flags[*tit].begin(); it != flags[*tit].end(); ++it) {
 			if ((*it).find("framework")==0) {
@@ -595,11 +609,20 @@ int main(int argc, char** argv) {
 			// include paths
 			for ( auto it = includes[*lit].begin(); it != includes[*lit].end(); ++it) {
 
-				string path = outputDir + inputProjectPath + *it;
+				string path;
 				struct stat info;
-				if (!stat( path.c_str(), &info )) {
-					out << "\t<header directory=\"" << inputProjectPath + *it << "\" />" << endl;
-					//cout << path << endl;
+				if ((*it).find_first_of("/\\")==0) {
+					path = *it;
+					if (!stat( path.c_str(), &info )) {
+						out << "\t<header directory=\"" << path << "\" />" << endl;
+						//cout << path << endl;
+					}
+				} else {
+					path = inputProjectPath + *it;
+					if (!stat( (outputDir + path).c_str(), &info )) {
+						out << "\t<header directory=\"" << path << "\" />" << endl;
+						//cout << path << endl;
+					}
 				}
 			}
 
