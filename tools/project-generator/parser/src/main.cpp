@@ -487,6 +487,9 @@ int main(int argc, char** argv) {
 				string framework = (*it).substr(10, (*it).length()-10) + ".framework";
 				out << "\t\t<library filename=\"" << framework << "\" />" << endl;
 				//cout << framework << endl;
+			} else if ((*it)[0]=='l') {
+				string library = "lib" + (*it).substr(1, (*it).length()-1) + ".dylib";
+				out << "\t\t<library filename=\"" << library << "\" />" << endl;
 			}
 		}
 		out << "\t</platform>" << endl;

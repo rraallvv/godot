@@ -277,7 +277,7 @@ class PBXFileReference(XcodeProjectObject):
 			else:
 				self.sourceTree = "SDKROOT"
 		elif extension == "dylib":
-			self.lastKnownFileType = "wrapper.framework"
+			self.lastKnownFileType = "compiled.mach-o.dylib"
 			self.sourceTree = "SDKROOT"
 		elif extension == "plist":
 			self.lastKnownFileType = "text.plist.xml"
@@ -518,7 +518,7 @@ class XcodeObjects(XcodeProjectSectionObject):
 			
 		framework_build_files = self.create_build_files_for_extension(object_factory, source_root, default_groups.frameworks, framework_names, ["framework"], "System/Library/Frameworks/")
 		
-		dylib_build_files = self.create_build_files_for_extension(object_factory, source_root, default_groups.frameworks, project.library_filenames, ["dylib"], "System/Library/Frameworks/")
+		dylib_build_files = self.create_build_files_for_extension(object_factory, source_root, default_groups.frameworks, project.library_filenames, ["dylib"], "usr/lib/")
 
 		all_framework_like_files = framework_build_files + dylib_build_files + library_build_files
 
