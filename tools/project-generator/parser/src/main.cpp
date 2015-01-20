@@ -259,7 +259,7 @@ void strReplace( string &s, const string &search, const string &replace )
 string platform = "ios";
 myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
 string inputProjectPath = "../../";
-myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework"};
+myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework", "-isysroot"};
 
 int main(int argc, char** argv) {
 
