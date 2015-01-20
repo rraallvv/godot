@@ -144,7 +144,7 @@ class Settings(object):
 
 	def set_linker(self, linker, flags):
 		self.linker_executable = linker
-		self.linker_flags = flags
+		self.linker_flags = flags.split(" ")
 
 	def include_paths(self):
 		return self.header_paths

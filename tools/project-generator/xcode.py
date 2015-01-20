@@ -530,11 +530,11 @@ class XcodeObjects(XcodeProjectSectionObject):
 		self.target_product = self.product(object_factory, default_groups.products, project.name(), project.target_type,  project.settings.library_search_paths, project.settings.framework_search_paths)
 		if project.target_type == "library":
 			header_paths = self.create_header_paths(object_factory, project.settings.header_paths)
-			self.project = self.create_project_for_library(object_factory, project.name(), default_groups.root_group(), default_groups.products, self.target_product, header_paths, project.settings.defines,platform)
+			self.project = self.create_project_for_library(object_factory, project.name(), default_groups.root_group(), default_groups.products, self.target_product, header_paths, project.settings.compiler_flags, project.settings.linker_flags, project.settings.defines, platform)
 		else:
 
 			header_paths = self.create_header_paths(object_factory, project.settings.header_paths)
-			self.project = self.create_project_for_application(object_factory, project.name(), default_groups.root_group(), default_groups.products, self.target_product, header_paths, project.settings.defines, project.configurations, platform)
+			self.project = self.create_project_for_application(object_factory, project.name(), default_groups.root_group(), default_groups.products, self.target_product, header_paths, project.settings.compiler_flags, project.settings.linker_flags, project.settings.defines, project.configurations, platform)
 
 		XcodeProjectSectionObject.__init__(self)
 
@@ -580,12 +580,12 @@ class XcodeObjects(XcodeProjectSectionObject):
 		for file_reference in self.source_file_references:
 			file_reference.change_short_name(source_path)
 
-	def create_project_for_library(self, object_factory, name, root_group, products_group, target_product, header_paths, defines, platform):
-		build_configuration_list = self.create_project_configuration_list_for_library(object_factory, name, header_paths, defines,platform)
+	def create_project_for_library(self, object_factory, name, root_group, products_group, target_product, header_paths, compiler_flags, linker_flags, defines, platform):
+		build_configuration_list = self.create_project_configuration_list_for_library(object_factory, name, header_paths, compiler_flags, linker_flags, defines, platform)
 		return object_factory.create(PBXProject, build_configuration_list, root_group, products_group, [target_product])
 
-	def create_project_for_application(self, object_factory, name, root_group, products_group, target_product, header_paths, defines, configurations, platform):
-		build_configuration_list = self.create_project_configuration_list_for_application(object_factory, name, header_paths, defines, configurations, platform)
+	def create_project_for_application(self, object_factory, name, root_group, products_group, target_product, header_paths, compiler_flags, linker_flags, defines, configurations, platform):
+		build_configuration_list = self.create_project_configuration_list_for_application(object_factory, name, header_paths, compiler_flags, linker_flags, defines, configurations, platform)
 		return object_factory.create(PBXProject, build_configuration_list, root_group, products_group, [target_product])
 
 	def create_build_configuration(self, object_creator, name, build_settings, comment):
@@ -707,40 +707,42 @@ class XcodeObjects(XcodeProjectSectionObject):
 
 		return build_settings
 
-	def create_project_build_settings_for_application(self, header_paths, defines, platform):
+	def create_project_build_settings_for_application(self, header_paths, compiler_flags, linker_flags, defines, platform):
 		build_settings = self.create_common_project_build_settings(header_paths, defines, platform)
 		build_settings["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer"
+		build_settings["OTHER_CFLAGS"] = compiler_flags
+		build_settings["OTHER_LDFLAGS"] = linker_flags
 		return build_settings
 
-	def create_project_release_configuration_for_application(self, object_creator, name, header_paths, defines, platform):
-		build_settings = self.create_project_build_settings_for_application(header_paths, defines, platform)
+	def create_project_release_configuration_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
+		build_settings = self.create_project_build_settings_for_application(header_paths, compiler_flags, linker_flags, defines, platform)
 		return self.create_build_configuration(object_creator, "Release", build_settings, "project")
 
-	def create_project_adhoc_configuration_for_application(self, object_creator, name, header_paths, defines, platform):
-		build_settings = self.create_project_build_settings_for_application(header_paths, defines, platform)
+	def create_project_adhoc_configuration_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
+		build_settings = self.create_project_build_settings_for_application(header_paths, compiler_flags, linker_flags, defines, platform)
 		build_settings["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Distribution"
 		build_settings["VALIDATE_PRODUCT"] = "YES"
 		return self.create_build_configuration(object_creator, "AdHoc", build_settings, "project")
 
-	def create_project_distribution_configuration_for_application(self, object_creator, name, header_paths, defines, platform):
-		build_settings = self.create_project_build_settings_for_application(header_paths, defines, platform)
+	def create_project_distribution_configuration_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
+		build_settings = self.create_project_build_settings_for_application(header_paths, compiler_flags, linker_flags, defines, platform)
 		build_settings["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Distribution"
 		build_settings["VALIDATE_PRODUCT"] = "YES"
 		return self.create_build_configuration(object_creator, "AppStore", build_settings, "project")
 
-	def create_project_debug_configuration_for_application(self, object_creator, name, header_paths, defines, platform):
-		build_settings = self.create_project_build_settings_for_application(header_paths, defines, platform)
+	def create_project_debug_configuration_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
+		build_settings = self.create_project_build_settings_for_application(header_paths, compiler_flags, linker_flags, defines, platform)
 		build_settings["GCC_PREPROCESSOR_DEFINITIONS"] = build_settings["GCC_PREPROCESSOR_DEFINITIONS"]
 		build_settings["GCC_OPTIMIZATION_LEVEL"] = "0"
 		bc = self.create_build_configuration(object_creator, "Debug", build_settings, "project")
 		return bc
 
-	def create_project_build_configurations_for_application(self, factory, name, header_paths, defines, configurations, platform):
+	def create_project_build_configurations_for_application(self, factory, name, header_paths, compiler_flags, linker_flags, defines, configurations, platform):
 		build_configurations = [
-			self.create_project_debug_configuration_for_application(factory, name, header_paths, defines + configurations["debug"].defines, platform),
-			self.create_project_release_configuration_for_application(factory, name, header_paths, defines + configurations["release"].defines, platform),
-			self.create_project_adhoc_configuration_for_application(factory, name, header_paths, defines + configurations["adhoc"].defines, platform),
-			self.create_project_distribution_configuration_for_application(factory, name, header_paths, defines + configurations["distribution"].defines, platform),
+			self.create_project_debug_configuration_for_application(factory, name, header_paths, compiler_flags, linker_flags, defines + configurations["debug"].defines, platform),
+			self.create_project_release_configuration_for_application(factory, name, header_paths, compiler_flags, linker_flags, defines + configurations["release"].defines, platform),
+			self.create_project_adhoc_configuration_for_application(factory, name, header_paths, compiler_flags, linker_flags, defines + configurations["adhoc"].defines, platform),
+			self.create_project_distribution_configuration_for_application(factory, name, header_paths, compiler_flags, linker_flags, defines + configurations["distribution"].defines, platform),
 		]
 
 		return build_configurations
@@ -759,10 +761,10 @@ class XcodeObjects(XcodeProjectSectionObject):
 		build_settings["GCC_OPTIMIZATION_LEVEL"] = 0
 		return self.create_build_configuration(object_creator, "Debug", build_settings, "project")
 
-	def create_project_build_configurations_for_library(self, factory, name, header_paths, defines,platform):
+	def create_project_build_configurations_for_library(self, factory, name, header_paths, compiler_flags, linker_flags, defines, platform):
 		build_configurations = [
-			self.create_project_debug_configuration_for_library(factory, name, header_paths, defines,platform),
-			self.create_project_release_configuration_for_library(factory, name, header_paths, defines,platform)
+			self.create_project_debug_configuration_for_library(factory, name, header_paths, defines, platform),
+			self.create_project_release_configuration_for_library(factory, name, header_paths, defines, platform)
 		]
 
 		return build_configurations
@@ -778,8 +780,8 @@ class XcodeObjects(XcodeProjectSectionObject):
 		configuration_list = self.create_configuration_list(object_creator, target_build_configurations, "target")
 		return configuration_list
 
-	def create_project_configuration_list_for_application(self, object_creator, name, header_paths, defines, configurations, platform):
-		project_build_configurations = self.create_project_build_configurations_for_application(object_creator, name, header_paths, defines, configurations, platform)
+	def create_project_configuration_list_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, configurations, platform):
+		project_build_configurations = self.create_project_build_configurations_for_application(object_creator, name, header_paths, compiler_flags, linker_flags, defines, configurations, platform)
 		configuration_list = self.create_configuration_list(object_creator, project_build_configurations, "project")
 		return configuration_list
 
@@ -788,8 +790,8 @@ class XcodeObjects(XcodeProjectSectionObject):
 		configuration_list = self.create_configuration_list(object_creator, target_build_configurations, "target")
 		return configuration_list
 
-	def create_project_configuration_list_for_library(self, object_creator, name, header_paths, defines,platform):
-		project_build_configurations = self.create_project_build_configurations_for_library(object_creator, name, header_paths, defines,platform)
+	def create_project_configuration_list_for_library(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
+		project_build_configurations = self.create_project_build_configurations_for_library(object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform)
 		configuration_list = self.create_configuration_list(object_creator, project_build_configurations, "project")
 		return configuration_list
 
