@@ -21,12 +21,8 @@ class SourceFileNode:
 
 				if basename in exclude_basenames:
 					continue
-
 				extension = os.path.splitext(filename)[1][1:]
-				if extension not in extensions:
-					continue
-
-				if filename not in self.filenames:
+				if extension in extensions:
 					complete_path = filename
 					self.filenames.append(complete_path)
 
@@ -34,9 +30,8 @@ class SourceFileNode:
 		complete_path = filename.replace("\\", "/")
 
 		# print("filename:", new_filename)
-		if complete_path not in self.filenames:
-			self.filenames.append(complete_path)
-			self.filenames.sort()
+		self.filenames.append(complete_path)
+		self.filenames.sort()
 
 	def search_directory_only(self, dor, extensions, exclude_basenames):
 		# print("BaseName:", dor + "*")
@@ -50,10 +45,7 @@ class SourceFileNode:
 				continue
 
 			extension = os.path.splitext(filename)[1][1:]
-			if extension not in extensions:
-				continue
-
-			if filename not in self.filenames:
+			if extension in extensions:
 				complete_path = filename
 				self.filenames.append(complete_path)
 
@@ -87,7 +79,11 @@ class Settings(object):
 
 	def extend(self, setting):
 		self.defines.extend(setting.defines)
+
 		self.header_paths.extend(setting.header_paths)
+		self.header_paths = list(set(self.header_paths))
+		self.header_paths.sort()
+
 		self.root_source_files.extend(setting.root_source_files)
 		self.library_search_paths.extend(setting.library_search_paths)
 		self.library_filenames.extend(setting.library_filenames)
