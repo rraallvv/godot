@@ -8,6 +8,7 @@ class SourceFileNode:
 
 	def extend(self, other):
 		self.filenames.extend(other.filenames)
+		self.filenames = list(set(self.filenames))
 
 	def search_recursive(self, dor, extensions, exclude_basenames):
 		# print("BaseName rec:", dor)
@@ -20,17 +21,22 @@ class SourceFileNode:
 
 				if basename in exclude_basenames:
 					continue
+
 				extension = os.path.splitext(filename)[1][1:]
-				if extension in extensions:
+				if extension not in extensions:
+					continue
+
+				if filename not in self.filenames:
 					complete_path = filename
 					self.filenames.append(complete_path)
 
 	def search_filename(self, filename):
-		new_filename = filename.replace("\\", "/")
+		complete_path = filename.replace("\\", "/")
 
 		# print("filename:", new_filename)
-		self.filenames.append(new_filename)
-		self.filenames.sort()
+		if complete_path not in self.filenames:
+			self.filenames.append(complete_path)
+			self.filenames.sort()
 
 	def search_directory_only(self, dor, extensions, exclude_basenames):
 		# print("BaseName:", dor + "*")
@@ -44,7 +50,10 @@ class SourceFileNode:
 				continue
 
 			extension = os.path.splitext(filename)[1][1:]
-			if extension in extensions:
+			if extension not in extensions:
+				continue
+
+			if filename not in self.filenames:
 				complete_path = filename
 				self.filenames.append(complete_path)
 
