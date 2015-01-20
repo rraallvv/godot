@@ -206,7 +206,7 @@ RID VisualServer::_make_test_cube() {
 	//material_set_flag(material, MATERIAL_FLAG_BILLBOARD_TOGGLE,true);
 	fixed_material_set_texture( material, FIXED_MATERIAL_PARAM_DIFFUSE, get_test_texture() );
 	fixed_material_set_param( material, FIXED_MATERIAL_PARAM_SPECULAR_EXP, 70 );
-	fixed_material_set_param( material, FIXED_MATERIAL_PARAM_EMISSION, Vector3(0.2,0.2,0.2) );
+	fixed_material_set_param( material, FIXED_MATERIAL_PARAM_EMISSION, Color(0.2,0.2,0.2) );
 
 	fixed_material_set_param( material, FIXED_MATERIAL_PARAM_DIFFUSE, Color(1, 1, 1) );
 	fixed_material_set_param( material, FIXED_MATERIAL_PARAM_SPECULAR, Color(1,1,1) );
