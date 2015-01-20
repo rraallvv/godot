@@ -8,6 +8,7 @@ class Target:
 
 class Source:
 	def __init__(self):
+		self.filename = ""
 		self.directory = ""
 		self.recursive = False
 		self.exclude = ""
@@ -30,6 +31,7 @@ class Configuration:
 
 class Header:
 	def __init__(self):
+		self.filename = ""
 		self.directory = ""
 
 class Library:
@@ -84,7 +86,10 @@ class Parser:
 			if sub_node.localName == "source":
 				source = Source()
 				self.parse_object(source, sub_node)
-				settings.add_source_directory(source.directory, source.recursive, source.exclude)
+				if source.filename != "":
+					settings.add_source_filename(source.filename)
+				else:
+					settings.add_source_directory(source.directory, source.recursive, source.exclude)
 
 			elif sub_node.localName == "dependency":
 				dependency = Dependency()
@@ -94,8 +99,12 @@ class Parser:
 			elif sub_node.localName == "header":
 				header = Header()
 				self.parse_object(header, sub_node)
-				directory = header.directory.replace("\\", "/")
-				settings.add_header_directory(directory)
+				if header.filename != "":
+					filename = header.filename.replace("\\", "/")
+					settings.add_header_filename(filename)
+				else:
+					directory = header.directory.replace("\\", "/")
+					settings.add_header_directory(directory)
 
 			elif sub_node.localName == "library":
 				library = Library()

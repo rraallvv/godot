@@ -25,6 +25,13 @@ class SourceFileNode:
 					complete_path = filename
 					self.filenames.append(complete_path)
 
+	def search_filename(self, filename):
+		new_filename = filename.replace("\\", "/")
+
+		# print("filename:", new_filename)
+		self.filenames.append(new_filename)
+		self.filenames.sort()
+
 	def search_directory_only(self, dor, extensions, exclude_basenames):
 		# print("BaseName:", dor + "*")
 		filenames = glob.glob(dor + "*")
@@ -85,11 +92,19 @@ class Settings(object):
 	def add_define(self, name):
 		self.defines.append(name)
 
+	def add_header_filename(self, filename):
+		direcory = os.path.split(filename)[0]
+		self.header_paths.append(direcory)
+		self.root_source_files.search_filename(filename)
+
 	def add_header_directory(self, path):
 		self.header_paths.append(path)
 		header_extensions = ["h", "hpp"]
 		empty_exclude_list = []
 		self.root_source_files.search_recursive(path, header_extensions, empty_exclude_list)
+
+	def add_source_filename(self, filename):
+		self.root_source_files.search_filename(filename)
 
 	def add_source_directory(self, path, recursive, exclude_list):
 		extensions = ["cpp", "c", "h", "pch", "xib", "m", "mm"]
