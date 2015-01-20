@@ -128,6 +128,8 @@ bool getline(const string &str, string &sub, const myvector delimiters, size_t &
 		from = string::npos;
 	}
 
+	sub = trim(sub, " \t", " \t");
+
 	return true;
 }
 
@@ -152,16 +154,14 @@ void findExeComponents(unordered_map<string,myvector> &objects,
 		size_t pos = 0U;
 
 		while (getline(rawflags[*lit], s, {" -", ","}, pos)) {
-			s = trim(s, " \t", " \t");
 			if (s.length()) {
 				if (s.find("/")==string::npos) {
 					fs.insert(s);
 				} else {
-					stringstream ssi(s);
 					string si;
+					size_t posi =0U;
 					string prev;
-					while (getline(ssi, si, ' ')) {
-						si = trim(si, " \t", " \t");
+					while (getline(s, si, {" "}, posi)) {
 						if (si.length()) {
 							if (si.find("/")==string::npos) {
 								if (prev.find("framework")!=string::npos) {
@@ -227,7 +227,6 @@ void findLibComponents(unordered_map<string,myvector> &objects,
 			string s;
 			size_t pos = 0U;
 			while (getline(f, s, {" -", ","}, pos)) {
-				s = trim(s, " \t", " \t");
 				if (s.length()) {
 					if (s[0]=='I')
 						is.insert(s.substr(1, s.length()-1));
@@ -334,15 +333,13 @@ int main(int argc, char** argv) {
 				myvector objs;
 				size_t pos = 0U;
 				while (getline(value, s, {" -", ","}, pos)) {
-					s = trim(s, " \t", " \t");
 					if (s.length() && s.find("/")!=string::npos) {
-						stringstream ssi(s);
-						string si;
 
+						string si;
+						size_t posi = 0U;
 						string prevObj;
 
-						while (getline(ssi, si, ' ')) {
-							si = trim(si, " \t", " \t");
+						while (getline(s, si, {" "}, posi)) {
 							if (si.length() && si.find("/")!=string::npos) {
 								//		cout << si << endl;
 								//si = trim(si, ".", "/", true);
@@ -382,15 +379,12 @@ int main(int argc, char** argv) {
 				size_t posl = 0U;
 
 				while (getline(value, s, {" -", ","}, posl)) {
-					s = trim(s, " \t", " \t");
 					if (s.length() && s.find("/")!=string::npos) {
-						stringstream ssi(s);
 						string si;
-
+						size_t posi = 0U;
 						string prevObj;
 
-						while (getline(ssi, si, ' ')) {
-							si = trim(si, " \t", " \t");
+						while (getline(s, si, {" "}, posi)) {
 							if (si.length() && si.find("/")!=string::npos) {
 								if (si[0]=='I')
 									includes[obj].insert(s.substr(1, s.length()-1));
