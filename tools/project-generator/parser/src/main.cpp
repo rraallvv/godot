@@ -256,28 +256,43 @@ void strReplace( string &s, const string &search, const string &replace )
 
 #pragma mark -
 
-string platform = "ios";
 myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
 string inputProjectPath = "../../";
 myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework", "-isysroot"};
 
 int main(int argc, char** argv) {
 
-	ifstream t;
 	string inputFile;
-	string outputDir;
+	string platform;
 
-	if (argc>=1) {
-		t.open(argv[1], ifstream::in);
-		if (!t.is_open()) {
-			cout << "Missing output file." << endl;
-			return errno;
-		}
+	for (int i=1; i<argc; ++i) {
+		string arg = argv[i];
+
+		if (arg.find("i=")==0)
+			inputFile = arg.substr(2, arg.length()-2);
+		else if (arg.find("p=")==0)
+			platform = arg.substr(2, arg.length()-2);
 	}
 
-	inputFile = string(argv[1]);
+	if (!inputFile.length() || !platform.length()) {
+		cout << argv[0] << " i=ouput.txt p=[mac_os_x|ios]" << endl;
+		return errno;
+	}
+
+	ifstream t;
+	t.open(inputFile, ifstream::in);
+	if (!t.is_open()) {
+		cout << "Couldn't open output file '" << inputFile << "'" << endl;
+		return errno;
+	}
+
+	if (platform.compare("mac_os_x")!=0 && platform.compare("ios")!=0) {
+		cout << "Platform '" << platform << "' not supported" << endl;
+		return errno;
+	}
+
 	size_t pos = inputFile.find_last_of("/\\");
-	outputDir = inputFile.substr(0,pos+1);
+	string outputDir = inputFile.substr(0,pos+1);
 
 	cout << "parsing: '" << inputFile << "'" << endl;
 
