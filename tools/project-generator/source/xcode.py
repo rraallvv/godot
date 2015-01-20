@@ -714,9 +714,15 @@ class XcodeObjects(XcodeProjectSectionObject):
 	def create_project_build_settings_for_application(self, header_paths, compiler_flags, linker_flags, defines, platform):
 		build_settings = self.create_common_project_build_settings(header_paths, defines, platform)
 		build_settings["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer"
-		build_settings["OTHER_CFLAGS"] = re.sub(r'(-[^-]* +)(?=.*\1)', r'', str.join(" ", compiler_flags)).split(" ")
+		flags = str.join(" ", compiler_flags)
+		flags = re.sub(r'(-[^\s]+\s+(?=-))(?=.*\1)', r'', flags)
+		flags = re.sub(r'(-[^\s-]+\s[^\s-]+\s+(?=-))(?=.*\1)', r'', flags)
+		build_settings["OTHER_CFLAGS"] = flags.split(" ")
 		# build_settings["OTHER_CFLAGS"] = compiler_flags
-		build_settings["OTHER_LDFLAGS"] = re.sub(r'(-[^-]* +)(?=.*\1)', r'', str.join(" ", linker_flags)).split(" ")
+		flags = str.join(" ", linker_flags)
+		flags = re.sub(r'(-[^\s]+\s+(?=-))(?=.*\1)', r'', flags)
+		flags = re.sub(r'(-[^\s-]+\s[^\s-]+\s+(?=-))(?=.*\1)', r'', flags)
+		build_settings["OTHER_LDFLAGS"] = flags.split(" ")
 		# build_settings["OTHER_LDFLAGS"] = linker_flags
 		return build_settings
 
