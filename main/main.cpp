@@ -865,65 +865,83 @@ bool Main::start() {
 	bool convert_old=false;
 	bool export_debug=false;
 	List<String> args = OS::get_singleton()->get_cmdline_args();
+	bool valid_option=true;
+	String unrecognized_options;
 	for (int i=0;i<args.size();i++) {
 		
 
 		if (args[i]=="-doctool" && i <(args.size()-1)) {
-
+			valid_option = true;
 			doc_tool=args[i+1];
 			i++;
 		}else if (args[i]=="-nodocbase") {
-
+			valid_option = true;
 			doc_base=false;
 		} else if ((args[i]=="-script" || args[i]=="-s") && i <(args.size()-1)) {
-		
+			valid_option = true;
 			script=args[i+1];
 			i++;
 		} else if ((args[i]=="-level" || args[i]=="-l") && i <(args.size()-1)) {
-
+			valid_option = true;
 			OS::get_singleton()->_custom_level=args[i+1];
 			i++;
 		} else if (args[i]=="-test" && i <(args.size()-1)) {
+			valid_option = true;
 			test=args[i+1];
 			i++;
 		} else if (args[i]=="-optimize" && i <(args.size()-1)) {
+			valid_option = true;
 			optimize=args[i+1];
 			i++;
 		} else if (args[i]=="-optimize_preset" && i <(args.size()-1)) {
+			valid_option = true;
 			optimize_preset=args[i+1];
 			i++;
 		} else if (args[i]=="-export" && i <(args.size()-1)) {
+			valid_option = true;
 			editor=true; //needs editor
 			_export_platform=args[i+1];
 			i++;
 		} else if (args[i]=="-export_debug" && i <(args.size()-1)) {
+			valid_option = true;
 			editor=true; //needs editor
 			_export_platform=args[i+1];
 			export_debug=true;
 			i++;
 		} else if (args[i]=="-import" && i <(args.size()-1)) {
+			valid_option = true;
 			editor=true; //needs editor
 			_import=args[i+1];
 			i++;
 		} else if (args[i]=="-import_script" && i <(args.size()-1)) {
+			valid_option = true;
 			editor=true; //needs editor
 			_import_script=args[i+1];
 			i++;
 		} else if (args[i]=="-noquit" ) {
+			valid_option = true;
 			noquit=true;
 		} else if (args[i]=="-dumpstrings" && i <(args.size()-1)) {
+			valid_option = true;
 			editor=true; //needs editor
 			dumpstrings=args[i+1];
 			i++;
 		} else if (args[i]=="-editor" || args[i]=="-e") {
+			valid_option = true;
 			editor=true;
 		} else if (args[i]=="-convert_old") {
+			valid_option = true;
 			convert_old=true;
-		} else if (args[i].length() && args[i][0] != '-' && game_path == "") {
-
+		} else if (args[i].length() && args[i][0] != '-' && game_path == "" && valid_option) {
 			game_path=args[i];
+		} else {
+			valid_option = false;
+			unrecognized_options += " " + args[i];
 		}
 	}
+
+	if (unrecognized_options.length())
+		print_line("unrecognized option(s):" + unrecognized_options);
 
 	if (editor)
 		Globals::get_singleton()->set("editor_active",true);
