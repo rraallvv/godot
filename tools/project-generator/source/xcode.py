@@ -532,11 +532,13 @@ class XcodeObjects(XcodeProjectSectionObject):
 
 		self.target_product = self.product(object_factory, default_groups.products, project.name(), project.target_type,  project.settings.library_search_paths, project.settings.framework_search_paths)
 		if project.target_type == "library":
-			header_paths = self.create_header_paths(object_factory, project.settings.header_paths)
+			header_paths = project.settings.header_paths
+			# header_paths = self.create_header_paths(object_factory, project.settings.header_paths)
 			self.project = self.create_project_for_library(object_factory, project.name(), default_groups.root_group(), default_groups.products, self.target_product, header_paths, project.settings.compiler_flags, project.settings.linker_flags, project.settings.defines, platform)
 		else:
 
-			header_paths = self.create_header_paths(object_factory, project.settings.header_paths)
+			header_paths = project.settings.header_paths
+			# header_paths = self.create_header_paths(object_factory, project.settings.header_paths)
 			self.project = self.create_project_for_application(object_factory, project.name(), default_groups.root_group(), default_groups.products, self.target_product, header_paths, project.settings.compiler_flags, project.settings.linker_flags, project.settings.defines, project.configurations, platform)
 
 		XcodeProjectSectionObject.__init__(self)
