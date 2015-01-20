@@ -605,6 +605,7 @@ class XcodeObjects(XcodeProjectSectionObject):
 			"USE_HEADERMAP": "NO",
 			"INFOPLIST_FILE": plist_filename,
 			"LIBRARY_SEARCH_PATHS": library_search_paths,
+			"DEAD_CODE_STRIPPING": "YES",
 			# "FRAMEWORK_SEARCH_PATHS": framework_search_paths,
 			"PRODUCT_NAME": name
 		}
