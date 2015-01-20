@@ -43,11 +43,15 @@ DVector<Face3> TestCube::get_faces(uint32_t p_usage_flags) const {
 
 TestCube::TestCube() {
 
-	set_base(VisualServer::get_singleton()->get_test_cube());
+	instance = VisualServer::get_singleton()->get_test_cube();
+	set_base(instance);
 }
 
 
 TestCube::~TestCube() {
+
+	if (instance.is_valid())
+		VisualServer::get_singleton()->free(instance);
 }
 
 
