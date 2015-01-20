@@ -173,6 +173,7 @@ void AudioDriverIphone::unlock() {
 void AudioDriverIphone::finish() {
 
 	memdelete_arr(samples_in);
+	samples_in = NULL;
 };
 
 

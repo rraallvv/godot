@@ -173,6 +173,7 @@ void AudioDriverOSX::unlock() {
 void AudioDriverOSX::finish() {
 
 	memdelete_arr(samples_in);
+	samples_in = NULL;
 };
 
 AudioDriverOSX::AudioDriverOSX() {
