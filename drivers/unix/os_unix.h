@@ -114,7 +114,7 @@ public:
 
 	//virtual void run( MainLoop * p_main_loop );
 
-
+	virtual ~OS_Unix();
 };
 
 #endif

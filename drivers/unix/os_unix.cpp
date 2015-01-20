@@ -128,11 +128,12 @@ void OS_Unix::initialize_core() {
 
 void OS_Unix::finalize_core() {
 
-
+/* Fix issue: #1083
 	if (mempool_dynamic)
 		memdelete( mempool_dynamic );
 	if (mempool_static)
 		delete mempool_static;
+*/
 
 }
 
@@ -427,5 +428,12 @@ String OS_Unix::get_executable_path() const {
 #endif
 }
 
+OS_Unix::~OS_Unix() {
+	// Fix issue: #1083
+	if (mempool_dynamic)
+		memdelete( mempool_dynamic );
+	if (mempool_static)
+		delete mempool_static;
+}
 
 #endif
