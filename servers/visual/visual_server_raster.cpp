@@ -3943,7 +3943,7 @@ void VisualServerRaster::free( RID p_rid ) {
 		}
 
 		rasterizer->free(p_rid);
-	} else if (rasterizer->is_mesh(p_rid) || rasterizer->is_multimesh(p_rid) || rasterizer->is_light(p_rid) || rasterizer->is_particles(p_rid) ) {
+	} else if (rasterizer->is_mesh(p_rid) || rasterizer->is_multimesh(p_rid) || rasterizer->is_light(p_rid) || rasterizer->is_particles(p_rid) || rasterizer->is_immediate(p_rid)) {
 		//delete the resource
 	
 		_free_attached_instances(p_rid);
