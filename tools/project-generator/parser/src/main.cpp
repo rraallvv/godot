@@ -123,12 +123,15 @@ void findExeComponents(unordered_map<string,myvector> &objects,
 				} else {
 					stringstream ssi(s);
 					string si;
-
+					string prev;
 					while (getline(ssi, si, ' ')) {
 						si = trim(si, " \t", " \t");
 						if (si.length()) {
 							if (si.find("/")==string::npos) {
-								fs.insert(si);
+								if (prev.find("framework")!=string::npos) {
+									//cout << rawflags[*lit] << endl;
+									fs.insert("framework " + si);
+								}
 							} else {
 								//		cout << si << endl;
 								//si = trim(si, ".", "/", true);
@@ -138,6 +141,7 @@ void findExeComponents(unordered_map<string,myvector> &objects,
 								}
 							}
 						}
+						prev = si;
 					}
 				}
 			}
@@ -220,7 +224,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	string platform = "mac_os_x";
+	string platform = "ios";
 
 	inputFile = string(argv[1]);
 	size_t pos = inputFile.find_last_of("/\\");
@@ -263,8 +267,6 @@ int main(int argc, char** argv) {
 			size_t s = line.find(" -o ");
 			size_t e = line.find(" ", s+4);
 			string obj = line.substr(s+4, e-s-4);
-			if(obj.find("register_driver_types")!=string::npos)
-				printf("");
 			//		cout << obj << endl;
 			//obj=trim(obj, ".", "/", true);
 			string value = line.substr(e+1, line.length()-e-1);
@@ -415,6 +417,8 @@ int main(int argc, char** argv) {
 			cout << *it << endl;
 		}
 	}
+
+	return 0;
 #endif
 
 
