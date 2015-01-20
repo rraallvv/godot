@@ -217,6 +217,8 @@ class PBXGroup(XcodeProjectObject):
 
 	def append_child(self, child):
 		self.children.append(child)
+		order = { "PBXGroup": 0, "PBXFileReference": 1 }
+		self.children.sort(key=lambda children: (order[children.__class__.__name__], children.name), reverse=False)
 
 	def find(self, name):
 		for group in self.children:
