@@ -154,7 +154,7 @@ class Parser:
 				self.parse_target_sub_nodes(sub_node, sub_config)
 
 	def convert_path(self, path):
-		if path[0] != "/":
+		if not os.path.isabs(path):
 			build_dir = self.root_directory + self.platform_string + "/"
 			build_dir = build_dir.replace("\\", "/")
 			new_path = project_path.Path(path).relative(build_dir)

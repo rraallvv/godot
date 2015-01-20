@@ -8,8 +8,8 @@ class Path:
 		if not os.path.exists(target):
 			raise OSError('Target does not exist: '+target)
 
-		if not os.path.isdir(base):
-			raise OSError( 'Base is not a directory or does not exist: '+base)
+		#if not os.path.isdir(base):
+		#	raise OSError( 'Base is not a directory or does not exist: '+base)
 
 		base_list = (os.path.abspath(base)).split(os.sep)
 		target_list = (os.path.abspath(target)).split(os.sep)
