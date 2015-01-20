@@ -118,6 +118,8 @@ Ref<ResourceInteractiveLoader> ResourceFormatLoader::load_interactive(const Stri
 RES ResourceFormatLoader::load(const String &p_path,const String& p_original_path) {
 
 
+	//		uint64_t tbegin = OS::get_singleton()->get_ticks_usec();
+
 	//or this must be implemented
 	Ref<ResourceInteractiveLoader> ril = load_interactive(p_path);
 	if (!ril.is_valid())
@@ -129,6 +131,7 @@ RES ResourceFormatLoader::load(const String &p_path,const String& p_original_pat
 		Error err = ril->poll();
 
 		if (err==ERR_FILE_EOF) {
+			//		double time_taken = (OS::get_singleton()->get_ticks_usec() - tbegin)/1000000.0; print_line(rtos(time_taken)+" "+p_path);
 			return ril->get_resource();
 		}
 

@@ -98,8 +98,10 @@ public:
 	Error read();
 	NodeType get_node_type();
 	String get_node_name() const;
-	String get_node_data() const;
+	String get_node_data();
+	char *get_node_ptr() const;
 	uint64_t get_node_offset() const;
+	int get_node_length() const;
 	int get_attribute_count() const;
 	String get_attribute_name(int p_idx) const;
 	String get_attribute_value(int p_idx) const;
@@ -114,6 +116,7 @@ public:
 
 	Error open(const String& p_path);
 	Error open_buffer(const Vector<uint8_t>& p_buffer);
+	Error open_file(const FileAccess* p_file);
 
 	void close();
 

@@ -32,163 +32,103 @@
 
 
 
-ResourceInteractiveLoaderXML::Tag* ResourceInteractiveLoaderXML::parse_tag(bool *r_exit,bool p_printerr) {
-
-
-	while(get_char()!='<' && !f->eof_reached()) {}
-	if (f->eof_reached()) {
-		return NULL;
-	}
+ResourceInteractiveLoaderXML::Tag* ResourceInteractiveLoaderXML::parse_tag() {
 
 	Tag tag;
-	bool exit=false;
-	if (r_exit)
-		*r_exit=false;
 
-	bool complete=false;
-	while(!f->eof_reached()) {
+	while ((error = parser.read())==OK) {
+		XMLParser::NodeType type = parser.get_node_type();
 
-		CharType c=get_char();
-		if (c<33 && tag.name.length() && !exit) {
+		if (type==XMLParser::NODE_ELEMENT) {
+			tag.name = parser.get_node_name();
+			int count = parser.get_attribute_count();
+			for (int i=0; i<count; ++i)
+				tag.args[parser.get_attribute_name(i)]=parser.get_attribute_value(i);
 			break;
-		} else if (c=='>') {
-			complete=true;
-			break;
-		} else if (c=='/') {
-			exit=true;
-		} else {
-			tag.name+=c;
-		}
-	}
-
-	if (f->eof_reached()) {
-
-		return NULL;
-	}
-
-	if (exit) {
-		if (!tag_stack.size()) {
-			if (!p_printerr)
-				return NULL;
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Unmatched exit tag </"+tag.name+">");
-			ERR_FAIL_COND_V(!tag_stack.size(),NULL);
-		}
-
-		if (tag_stack.back()->get().name!=tag.name) {
-			if (!p_printerr)
-				return NULL;
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Mismatched exit tag. Got </"+tag.name+">, expected </"+tag_stack.back()->get().name+">");
-			ERR_FAIL_COND_V(tag_stack.back()->get().name!=tag.name,NULL);
-		}
-
-		if (!complete) {
-			while(get_char()!='>' && !f->eof_reached()) {}
-			if (f->eof_reached())
-				return NULL;
-		}
-
-		if (r_exit)
-			*r_exit=true;
-
-		tag_stack.pop_back();
-		return NULL;
-
-	}
-
-	if (!complete) {
-		String name;
-		CharString r_value;
-		bool reading_value=false;
-
-		while(!f->eof_reached()) {
-
-			CharType c=get_char();
-			if (c=='>') {
-				if (r_value.size()) {
-
-					r_value.push_back(0);
-					tag.args[name].parse_utf8(r_value.get_data());
-				}
-				break;
-
-			} else if ( ((!reading_value && (c<33)) || c=='=' || c=='"' || c=='\'') && tag.name.length()) {
-
-				if (!reading_value && name.length()) {
-
-					reading_value=true;
-				} else if (reading_value && r_value.size()) {
-
-					r_value.push_back(0);
-					tag.args[name].parse_utf8(r_value.get_data());
-					name="";
-					r_value.clear();
-					reading_value=false;
-				}
-
-			} else if (reading_value) {
-
-				r_value.push_back(c);
-			} else {
-
-				name+=c;
+		} else if (type==XMLParser::NODE_UNKNOWN) {
+			Vector<String> tokens;
+			CharType *star, *end, *last;
+			String name=parser.get_node_name();
+			star=end=name.ptr();
+			last=star+name.length();
+			while (end!=last) {
+				while (*end!=' ' && *end!='\t' && end!=last) end++;
+				tokens.push_back(String(star, end-star));
+				while (*end==' ' || *end=='\t') end++;
+				star=end;
 			}
-		}
-
-		if (f->eof_reached())
+			for (int i=0; i<tokens.size(); ++i) {
+				int pos = tokens[i].find("=");
+				String name= pos>=0 ? tokens[i].substr(0, pos) : tokens[i];
+				String value= pos>=0 ? tokens[i].substr(pos+1, tokens[i].length()) : "";
+				unquote(value);
+				if (i)
+					tag.args[name]=value;
+				else
+					tag.name=name;
+			}
+			break;
+		} else if (type==XMLParser::NODE_ELEMENT_END) {
+			tag_stack.pop_back();
+			error = ERR_FILE_EOF;
 			return NULL;
+		}
 	}
+
+	ERR_FAIL_COND_V(error!=OK, NULL);
 
 	tag_stack.push_back(tag);
 
 	return &tag_stack.back()->get();
 }
 
-
 Error ResourceInteractiveLoaderXML::close_tag(const String& p_name) {
 
-	int level=0;
-	bool inside_tag=false;
+#if 0
 
-	while(true) {
+	while((error=parser.read())==OK) {
 
-		if (f->eof_reached()) {
-
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": EOF found while attempting to find  </"+p_name+">");
-			ERR_FAIL_COND_V( f->eof_reached(), ERR_FILE_CORRUPT );
-		}
-
-		uint8_t c = get_char();
-
-		if (c == '<') {
-
-			if (inside_tag) {
-				ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Malformed XML. Already inside Tag.");
-				ERR_FAIL_COND_V(inside_tag,ERR_FILE_CORRUPT);
-			}
-			inside_tag=true;
-			c = get_char();
-			if (c == '/') {
-
-				--level;
-			} else {
-
-				++level;
-			};
-		} else if (c == '>') {
-
-			if (!inside_tag) {
-				ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Malformed XML. Already outside Tag");
-				ERR_FAIL_COND_V(!inside_tag,ERR_FILE_CORRUPT);
-			}
-			inside_tag=false;
-			if (level == -1) {
-				tag_stack.pop_back();
-				return OK;
-			};
-		};
+		if (parser.get_node_type() == XMLParser::NODE_ELEMENT_END)// && parser.get_node_name()==p_name)
+			break; //end of tag
 	}
 
-	return OK;
+	ERR_FAIL_COND_V(error!=OK, error);
+
+#else
+
+	// skip if this element is empty anyway.
+	if (parser.is_empty())
+		return OK;
+
+	// read until we've reached the last element in this section
+	int tagcount=1;
+	String open_tag=p_name;
+	String close_tag="";
+
+	while(tagcount && (error = parser.read())==OK)
+	{
+		if (parser.get_node_type() == XMLParser::NODE_ELEMENT &&
+			!parser.is_empty())
+		{
+			++tagcount;
+		}
+		else
+		if (parser.get_node_type() == XMLParser::NODE_ELEMENT_END)
+		{
+			close_tag=parser.get_node_name();
+			--tagcount;
+		}
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	error = open_tag==close_tag ? OK : ERR_FILE_CORRUPT;
+
+#endif
+
+	tag_stack.pop_back();
+
+	return error;
 }
 
 void ResourceInteractiveLoaderXML::unquote(String& p_str) {
@@ -215,19 +155,14 @@ void ResourceInteractiveLoaderXML::unquote(String& p_str) {
 
 Error ResourceInteractiveLoaderXML::goto_end_of_tag() {
 
-	uint8_t c;
-	while(true) {
-
-		c=get_char();
-		if (c=='>') //closetag
+	while ((error=parser.read())==OK) {
+		if (parser.get_node_type()==XMLParser::NODE_ELEMENT_END) {
 			break;
-		if (f->eof_reached()) {
-
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": EOF found while attempting to find close tag.");
-			ERR_FAIL_COND_V( f->eof_reached(), ERR_FILE_CORRUPT );
 		}
-
 	}
+
+	ERR_FAIL_COND_V(error!=OK,error);
+
 	tag_stack.pop_back();
 
 	return OK;
@@ -237,35 +172,23 @@ Error ResourceInteractiveLoaderXML::goto_end_of_tag() {
 Error ResourceInteractiveLoaderXML::parse_property_data(String &r_data) {
 
 	r_data="";
-	CharString cs;
-	while(true) {
 
-		CharType c=get_char();
-		if (c=='<')
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
 			break;
-		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-		cs.push_back(c);
 	}
 
-	cs.push_back(0);
+	ERR_FAIL_COND_V(error!=OK, error);
 
-	r_data.parse_utf8(cs.get_data());
-
-	while(get_char()!='>' && !f->eof_reached()) {}
-	if (f->eof_reached()) {
-
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Malformed XML.");
-		ERR_FAIL_COND_V( f->eof_reached(), ERR_FILE_CORRUPT );
-	}
-
+	r_data=parser.get_node_data();
 	r_data=r_data.strip_edges();
-	tag_stack.pop_back();
 
 	return OK;
 }
 
 
-Error ResourceInteractiveLoaderXML::_parse_array_element(Vector<char> &buff,bool p_number_only,FileAccess *f,bool *end) {
+Error ResourceInteractiveLoaderXML::_parse_array_element(Vector<char> &buff,bool p_number_only,char *&data,bool *end) {
 
 	if (buff.empty())
 		buff.resize(32); // optimi
@@ -279,7 +202,8 @@ Error ResourceInteractiveLoaderXML::_parse_array_element(Vector<char> &buff,bool
 
 	while(true) {
 
-		char c=get_char();
+		char c=*data;
+		data++;
 
 		if (c==0) {
 			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": File corrupt (zero found).");
@@ -330,20 +254,1015 @@ Error ResourceInteractiveLoaderXML::_parse_array_element(Vector<char> &buff,bool
 	return OK;
 }
 
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_dictionary(Tag* tag, Variant& r_v, String &r_name) {
+
+	Dictionary d( tag->args.has("shared") && (String(tag->args["shared"])=="true" || String(tag->args["shared"])=="1"));
+
+	while(true) {
+
+		Error err;
+		String tagname;
+		Variant key;
+
+		int dictline = get_current_line();
+
+
+		err=parse_property(key,tagname);
+
+		if (err && err!=ERR_FILE_EOF) {
+			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error parsing dictionary: "+r_name+" (from line "+itos(dictline)+")");
+			ERR_FAIL_COND_V(err && err!=ERR_FILE_EOF,err);
+		}
+		//ERR_FAIL_COND_V(tagname!="key",ERR_FILE_CORRUPT);
+		if (err)
+			break;
+		Variant value;
+		err=parse_property(value,tagname);
+		if (err) {
+			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error parsing dictionary: "+r_name+" (from line "+itos(dictline)+")");
+		}
+
+		ERR_FAIL_COND_V(err,err);
+		//ERR_FAIL_COND_V(tagname!="value",ERR_FILE_CORRUPT);
+
+		d[key]=value;
+	}
+
+
+	//err=parse_property_data(name); // skip the rest
+	//ERR_FAIL_COND_V(err,err);
+
+	r_v=d;
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+
+
+	int len=tag->args["len"].to_int();
+	bool shared = tag->args.has("shared") && (String(tag->args["shared"])=="true" || String(tag->args["shared"])=="1");
+
+	Array array(shared);
+	array.resize(len);
+
+	Error err;
+	Variant v;
+	String tagname;
+	int idx=0;
+	while( (err=parse_property(v,tagname))==OK ) {
+
+		ERR_CONTINUE( idx <0 || idx >=len );
+
+		array.set(idx,v);
+		idx++;
+	}
+
+	if (idx!=len) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array (size mismatch): "+r_name);
+		ERR_FAIL_COND_V(idx!=len,err);
+	}
+
+	if (err!=ERR_FILE_EOF) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array: "+r_name);
+		ERR_FAIL_COND_V(err!=ERR_FILE_EOF,err);
+	}
+
+	//err=parse_property_data(name); // skip the rest
+	//ERR_FAIL_COND_V(err,err);
+
+	r_v=array;
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_resource(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (tag->args.has("path")) {
+
+		String path=tag->args["path"];
+		String hint;
+		if (tag->args.has("resource_type"))
+			hint=tag->args["resource_type"];
+
+		if (path.begins_with("local://"))
+			path=path.replace("local://",local_path+"::");
+		else if (path.find("://")==-1 && path.is_rel_path()) {
+			// path is relative to file being loaded, so convert to a resource path
+			path=Globals::get_singleton()->localize_path(local_path.get_base_dir()+"/"+path);
+
+		}
+
+		//take advantage of the resource loader cache. The resource is cached on it, even if
+		RES res=ResourceLoader::load(path,hint);
+
+
+		if (res.is_null()) {
+
+			WARN_PRINT(String("Couldn't load resource: "+path).ascii().get_data());
+		}
+
+		r_v=res.get_ref_ptr();
+	}
+
+
+
+	Error err=goto_end_of_tag();
+	if (err) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error closing <resource> tag.");
+		ERR_FAIL_COND_V(err,err);
+	}
+
+
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_image(Tag *tag, Variant &r_v, String &r_name) {
+
+	if (!tag->args.has("encoding")) {
+		//empty image
+		r_v=Image();
+		String sdfsdfg;
+		Error err=parse_property_data(sdfsdfg);
+		return OK;
+	}
+
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'encoding' field.");
+	ERR_FAIL_COND_V( !tag->args.has("encoding"), ERR_FILE_CORRUPT );
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'width' field.");
+	ERR_FAIL_COND_V( !tag->args.has("width"), ERR_FILE_CORRUPT );
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'height' field.");
+	ERR_FAIL_COND_V( !tag->args.has("height"), ERR_FILE_CORRUPT );
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'format' field.");
+	ERR_FAIL_COND_V( !tag->args.has("format"), ERR_FILE_CORRUPT );
+
+	String encoding=tag->args["encoding"];
+
+	if (encoding=="raw") {
+		String width=tag->args["width"];
+		String height=tag->args["height"];
+		String format=tag->args["format"];
+		int mipmaps=tag->args.has("mipmaps")?int(tag->args["mipmaps"].to_int()):int(0);
+		int custom_size = tag->args.has("custom_size")?int(tag->args["custom_size"].to_int()):int(0);
+
+
+		Image::Format imgformat;
+
+
+		if (format=="grayscale") {
+			imgformat=Image::FORMAT_GRAYSCALE;
+		} else if (format=="intensity") {
+			imgformat=Image::FORMAT_INTENSITY;
+		} else if (format=="grayscale_alpha") {
+			imgformat=Image::FORMAT_GRAYSCALE_ALPHA;
+		} else if (format=="rgb") {
+			imgformat=Image::FORMAT_RGB;
+		} else if (format=="rgba") {
+			imgformat=Image::FORMAT_RGBA;
+		} else if (format=="indexed") {
+			imgformat=Image::FORMAT_INDEXED;
+		} else if (format=="indexed_alpha") {
+			imgformat=Image::FORMAT_INDEXED_ALPHA;
+		} else if (format=="bc1") {
+			imgformat=Image::FORMAT_BC1;
+		} else if (format=="bc2") {
+			imgformat=Image::FORMAT_BC2;
+		} else if (format=="bc3") {
+			imgformat=Image::FORMAT_BC3;
+		} else if (format=="bc4") {
+			imgformat=Image::FORMAT_BC4;
+		} else if (format=="bc5") {
+			imgformat=Image::FORMAT_BC5;
+		} else if (format=="pvrtc2") {
+			imgformat=Image::FORMAT_PVRTC2;
+		} else if (format=="pvrtc2a") {
+			imgformat=Image::FORMAT_PVRTC2_ALPHA;
+		} else if (format=="pvrtc4") {
+			imgformat=Image::FORMAT_PVRTC4;
+		} else if (format=="pvrtc4a") {
+			imgformat=Image::FORMAT_PVRTC4_ALPHA;
+		} else if (format=="etc") {
+			imgformat=Image::FORMAT_ETC;
+		} else if (format=="atc") {
+			imgformat=Image::FORMAT_ATC;
+		} else if (format=="atcai") {
+			imgformat=Image::FORMAT_ATC_ALPHA_INTERPOLATED;
+		} else if (format=="atcae") {
+			imgformat=Image::FORMAT_ATC_ALPHA_EXPLICIT;
+		} else if (format=="custom") {
+			imgformat=Image::FORMAT_CUSTOM;
+		} else {
+
+			ERR_FAIL_V( ERR_FILE_CORRUPT );
+		}
+
+
+		int datasize;
+		int w=width.to_int();
+		int h=height.to_int();
+
+		if (w == 0 && h == 0) {
+			//r_v = Image(w, h, imgformat);
+			r_v=Image();
+			String sdfsdfg;
+			Error err=parse_property_data(sdfsdfg);
+			return OK;
+		};
+
+		if (imgformat==Image::FORMAT_CUSTOM) {
+
+			datasize=custom_size;
+		} else {
+
+			datasize = Image::get_image_data_size(h,w,imgformat,mipmaps);
+		}
+
+		if (datasize==0) {
+			//r_v = Image(w, h, imgformat);
+			r_v=Image();
+			String sdfsdfg;
+			Error err=parse_property_data(sdfsdfg);
+			return OK;
+		};
+
+		DVector<uint8_t> pixels;
+		pixels.resize(datasize);
+		DVector<uint8_t>::Write wb = pixels.write();
+
+		int idx=0;
+		uint8_t byte;
+
+#if 0
+
+		while( idx<datasize*2) {
+
+			CharType c=get_char();
+
+			ERR_FAIL_COND_V(c=='<',ERR_FILE_CORRUPT);
+
+			if ( (c>='0' && c<='9') || (c>='A' && c<='F') || (c>='a' && c<='f') ) {
+
+				if (idx&1) {
+
+					byte|=HEX2CHR(c);
+					wb[idx>>1]=byte;
+				} else {
+
+					byte=HEX2CHR(c)<<4;
+				}
+
+				idx++;
+			}
+
+		}
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+#else
+
+		String data="";
+
+		while ((error=parser.read())==OK) {
+
+			if (parser.get_node_type()==XMLParser::NODE_TEXT)
+				break;
+		}
+
+		ERR_FAIL_COND_V(error!=OK, error);
+
+		data=parser.get_node_data();
+		CharType *p = data.ptr();
+
+		while( idx<datasize*2) {
+
+			CharType c=*p;
+			p++;
+
+			ERR_FAIL_COND_V(c=='<',ERR_FILE_CORRUPT);
+
+			if ( (c>='0' && c<='9') || (c>='A' && c<='F') || (c>='a' && c<='f') ) {
+
+				if (idx&1) {
+
+					byte|=HEX2CHR(c);
+					wb[idx>>1]=byte;
+				} else {
+
+					byte=HEX2CHR(c)<<4;
+				}
+				
+				idx++;
+			}
+			
+		}
+
+#endif
+
+		wb=DVector<uint8_t>::Write();
+
+		r_v=Image(w,h,mipmaps,imgformat,pixels);
+		String sdfsdfg;
+		Error err=parse_property_data(sdfsdfg);
+		ERR_FAIL_COND_V(err,err);
+
+		return OK;
+	}
+
+	ERR_FAIL_V(ERR_FILE_CORRUPT);
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_raw_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": RawArray missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();
+
+	DVector<uint8_t> bytes;
+	bytes.resize(len);
+	DVector<uint8_t>::Write w=bytes.write();
+	uint8_t *bytesptr=w.ptr();
+	int idx=0;
+	uint8_t byte;
+
+#if 0
+
+	while( idx<len*2) {
+
+		CharType c=get_char();
+		if (c<=32)
+			continue;
+
+		if (idx&1) {
+
+			byte|=HEX2CHR(c);
+			bytesptr[idx>>1]=byte;
+			//printf("%x\n",int(byte));
+		} else {
+
+			byte=HEX2CHR(c)<<4;
+		}
+
+		idx++;
+	}
+
+	ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+#else
+
+	String data="";
+
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
+			break;
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	data=parser.get_node_data();
+	CharType *p = data.ptr();
+
+	while( idx<len*2) {
+
+		CharType c=*p;
+		p++;
+
+		if (c<=32)
+			continue;
+
+		if (idx&1) {
+
+			byte|=HEX2CHR(c);
+			bytesptr[idx>>1]=byte;
+			//printf("%x\n",int(byte));
+		} else {
+
+			byte=HEX2CHR(c)<<4;
+		}
+
+		idx++;
+	}
+
+#endif
+
+	w=DVector<uint8_t>::Write();
+	r_v=bytes;
+	String sdfsdfg;
+	Error err=parse_property_data(sdfsdfg);
+	ERR_FAIL_COND_V(err,err);
+
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_int_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();
+
+	DVector<int> ints;
+	ints.resize(len);
+	DVector<int>::Write w=ints.write();
+	int *intsptr=w.ptr();
+	int idx=0;
+	String str;
+#if 0
+	while( idx<len ) {
+
+
+		CharType c=get_char();
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+		if (c<33 || c==',' || c=='<') {
+
+			if (str.length()) {
+
+				intsptr[idx]=str.to_int();
+				str="";
+				idx++;
+			}
+
+			if (c=='<') {
+
+				while(get_char()!='>' && !f->eof_reached()) {}
+				ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+				break;
+			}
+
+		} else {
+
+			str+=c;
+		}
+	}
+
+#else
+
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
+			break;
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	char *p = parser.get_node_ptr();
+	Vector<char> tmpdata;
+
+	while( idx<len ) {
+
+		bool end=false;
+		Error err = _parse_array_element(tmpdata,true,p,&end);
+		ERR_FAIL_COND_V(err,err);
+
+		intsptr[idx]=String::to_int(&tmpdata[0]);
+		idx++;
+		if (end)
+			break;
+
+	}
+
+#endif
+	w=DVector<int>::Write();
+
+	r_v=ints;
+	Error err=goto_end_of_tag();
+	ERR_FAIL_COND_V(err,err);
+
+	return OK;
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_real_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();;
+
+	DVector<real_t> reals;
+	reals.resize(len);
+	DVector<real_t>::Write w=reals.write();
+	real_t *realsptr=w.ptr();
+	int idx=0;
+	String str;
+
+
+#if 0
+	while( idx<len ) {
+
+
+		CharType c=get_char();
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+
+		if (c<33 || c==',' || c=='<') {
+
+			if (str.length()) {
+
+				realsptr[idx]=str.to_double();
+				str="";
+				idx++;
+			}
+
+			if (c=='<') {
+
+				while(get_char()!='>' && !f->eof_reached()) {}
+				ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+				break;
+			}
+
+		} else {
+
+			str+=c;
+		}
+	}
+
+#else
+
+
+
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
+			break;
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	char *p = parser.get_node_ptr();
+	Vector<char> tmpdata;
+
+	while( idx<len ) {
+
+		bool end=false;
+		Error err = _parse_array_element(tmpdata,true,p,&end);
+		ERR_FAIL_COND_V(err,err);
+
+		realsptr[idx]=String::to_double(&tmpdata[0]);
+		idx++;
+
+		if (end)
+			break;
+	}
+
+#endif
+
+	w=DVector<real_t>::Write();
+	r_v=reals;
+
+	Error err=goto_end_of_tag();
+	ERR_FAIL_COND_V(err,err);
+
+	return OK;
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_string_array(Tag* tag, Variant& r_v, String &r_name) {
+#if 0
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();
+
+	DVector<String> strings;
+	strings.resize(len);
+	DVector<String>::Write w=strings.write();
+	String *stringsptr=w.ptr();
+	int idx=0;
+	String str;
+
+	bool inside_str=false;
+	CharString cs;
+	while( idx<len ) {
+
+
+		CharType c=get_char();
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+
+		if (c=='"') {
+			if (inside_str) {
+
+				cs.push_back(0);
+				String str;
+				str.parse_utf8(cs.get_data());
+				unquote(str);
+				stringsptr[idx]=str;
+				cs.clear();
+				idx++;
+				inside_str=false;
+			} else {
+				inside_str=true;
+			}
+		} else if (c=='<') {
+
+			while(get_char()!='>' && !f->eof_reached()) {}
+			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+			break;
+
+
+		} else if (inside_str){
+
+			cs.push_back(c);
+		}
+	}
+	w=DVector<String>::Write();
+	r_v=strings;
+	String sdfsdfg;
+	Error err=parse_property_data(sdfsdfg);
+	ERR_FAIL_COND_V(err,err);
+
+	r_name=name;
+
+	return OK;
+#endif
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": String Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+
+
+	int len=tag->args["len"].to_int();
+
+	StringArray array;
+	array.resize(len);
+	DVector<String>::Write w = array.write();
+
+	Error err;
+	Variant v;
+	String tagname;
+	int idx=0;
+
+
+	while( (err=parse_property(v,tagname))==OK ) {
+
+		ERR_CONTINUE( idx <0 || idx >=len );
+		String str = v; //convert back to string
+		w[idx]=str;
+		idx++;
+	}
+
+	if (idx!=len) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array (size mismatch): "+r_name);
+		ERR_FAIL_COND_V(idx!=len,err);
+	}
+
+	if (err!=ERR_FILE_EOF) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array: "+r_name);
+		ERR_FAIL_COND_V(err!=ERR_FILE_EOF,err);
+	}
+
+	//err=parse_property_data(name); // skip the rest
+	//ERR_FAIL_COND_V(err,err);
+
+	r_v=array;
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_vector3_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();;
+
+	DVector<Vector3> vectors;
+	vectors.resize(len);
+	DVector<Vector3>::Write w=vectors.write();
+	Vector3 *vectorsptr=w.ptr();
+	int idx=0;
+	int subidx=0;
+	Vector3 auxvec;
+	String str;
+
+	//		uint64_t tbegin = OS::get_singleton()->get_ticks_usec();
+#if 0
+	while( idx<len ) {
+
+
+		CharType c=get_char();
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+
+		if (c<33 || c==',' || c=='<') {
+
+			if (str.length()) {
+
+				auxvec[subidx]=str.to_double();
+				subidx++;
+				str="";
+				if (subidx==3) {
+					vectorsptr[idx]=auxvec;
+
+					idx++;
+					subidx=0;
+				}
+			}
+
+			if (c=='<') {
+
+				while(get_char()!='>' && !f->eof_reached()) {}
+				ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+				break;
+			}
+
+		} else {
+
+			str+=c;
+		}
+	}
+#else
+
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
+			break;
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	char *p = parser.get_node_ptr();
+	Vector<char> tmpdata;
+
+	while( idx<len ) {
+
+		bool end=false;
+		Error err = _parse_array_element(tmpdata,true,p,&end);
+		ERR_FAIL_COND_V(err,err);
+
+
+		auxvec[subidx]=String::to_double(&tmpdata[0]);
+		subidx++;
+		if (subidx==3) {
+			vectorsptr[idx]=auxvec;
+
+			idx++;
+			subidx=0;
+		}
+
+		if (end)
+			break;
+	}
+
+
+
+#endif
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Premature end of vector3 array");
+	ERR_FAIL_COND_V(idx<len,ERR_FILE_CORRUPT);
+	//		double time_taken = (OS::get_singleton()->get_ticks_usec() - tbegin)/1000000.0;
+
+
+	w=DVector<Vector3>::Write();
+	r_v=vectors;
+	String sdfsdfg;
+	Error err=goto_end_of_tag();
+	ERR_FAIL_COND_V(err,err);
+
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_vector2_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();;
+
+	DVector<Vector2> vectors;
+	vectors.resize(len);
+	DVector<Vector2>::Write w=vectors.write();
+	Vector2 *vectorsptr=w.ptr();
+	int idx=0;
+	int subidx=0;
+	Vector2 auxvec;
+	String str;
+
+	//		uint64_t tbegin = OS::get_singleton()->get_ticks_usec();
+#if 0
+	while( idx<len ) {
+
+
+		CharType c=get_char();
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+
+		if (c<22 || c==',' || c=='<') {
+
+			if (str.length()) {
+
+				auxvec[subidx]=str.to_double();
+				subidx++;
+				str="";
+				if (subidx==2) {
+					vectorsptr[idx]=auxvec;
+
+					idx++;
+					subidx=0;
+				}
+			}
+
+			if (c=='<') {
+
+				while(get_char()!='>' && !f->eof_reached()) {}
+				ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+				break;
+			}
+
+		} else {
+
+			str+=c;
+		}
+	}
+#else
+
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
+			break;
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	char *p = parser.get_node_ptr();
+	Vector<char> tmpdata;
+
+	while( idx<len ) {
+
+		bool end=false;
+		Error err = _parse_array_element(tmpdata,true,p,&end);
+		ERR_FAIL_COND_V(err,err);
+
+
+		auxvec[subidx]=String::to_double(&tmpdata[0]);
+		subidx++;
+		if (subidx==2) {
+			vectorsptr[idx]=auxvec;
+
+			idx++;
+			subidx=0;
+		}
+
+		if (end)
+			break;
+	}
+
+
+
+#endif
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Premature end of vector2 array");
+	ERR_FAIL_COND_V(idx<len,ERR_FILE_CORRUPT);
+	//		double time_taken = (OS::get_singleton()->get_ticks_usec() - tbegin)/1000000.0;
+
+
+	w=DVector<Vector2>::Write();
+	r_v=vectors;
+	String sdfsdfg;
+	Error err=goto_end_of_tag();
+	ERR_FAIL_COND_V(err,err);
+
+	return OK;
+
+}
+
+_FORCE_INLINE_ Error ResourceInteractiveLoaderXML::_parse_color_array(Tag* tag, Variant& r_v, String &r_name) {
+
+	if (!tag->args.has("len")) {
+		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+r_name);
+		ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
+	}
+	int len=tag->args["len"].to_int();;
+
+	DVector<Color> colors;
+	colors.resize(len);
+	DVector<Color>::Write w=colors.write();
+	Color *colorsptr=w.ptr();
+	int idx=0;
+	int subidx=0;
+	Color auxcol;
+	String str;
+
+	//		uint64_t tbegin = OS::get_singleton()->get_ticks_usec();
+#if 0
+
+	while( idx<len ) {
+
+
+		CharType c=get_char();
+		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+
+
+		if (c<33 || c==',' || c=='<') {
+
+			if (str.length()) {
+
+				auxcol[subidx]=str.to_double();
+				subidx++;
+				str="";
+				if (subidx==4) {
+					colorsptr[idx]=auxcol;
+					idx++;
+					subidx=0;
+				}
+			}
+
+			if (c=='<') {
+
+				while(get_char()!='>' && !f->eof_reached()) {}
+				ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
+				break;
+			}
+
+		} else {
+
+			str+=c;
+		}
+	}
+	
+#else
+
+	while ((error=parser.read())==OK) {
+
+		if (parser.get_node_type()==XMLParser::NODE_TEXT)
+			break;
+	}
+
+	ERR_FAIL_COND_V(error!=OK, error);
+
+	char *p = parser.get_node_ptr();
+	Vector<char> tmpdata;
+
+	while( idx<len ) {
+
+		bool end=false;
+		Error err = _parse_array_element(tmpdata,true,p,&end);
+		ERR_FAIL_COND_V(err,err);
+
+
+		auxcol[subidx]=String::to_double(&tmpdata[0]);
+		subidx++;
+		if (subidx==4) {
+			colorsptr[idx]=auxcol;
+
+			idx++;
+			subidx=0;
+		}
+
+		if (end)
+			break;
+	}
+
+
+
+#endif
+	ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Premature end of color array");
+	ERR_FAIL_COND_V(idx<len,ERR_FILE_CORRUPT);
+	//		double time_taken = (OS::get_singleton()->get_ticks_usec() - tbegin)/1000000.0;
+
+
+	w=DVector<Color>::Write();
+	r_v=colors;
+	String sdfsdfg;
+	Error err=parse_property_data(sdfsdfg);
+	ERR_FAIL_COND_V(err,err);
+
+	return OK;
+}
+
 Error ResourceInteractiveLoaderXML::parse_property(Variant& r_v, String &r_name)  {
 
-	bool exit;
-	Tag *tag = parse_tag(&exit);
+	Tag *tag = parse_tag();
 
 	if (!tag) {
-		if (exit) // shouldn't have exited
-			return ERR_FILE_EOF;
+		if (error==ERR_FILE_EOF) // shouldn't have exited
+			return error;
 		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": File corrupt (No Property Tag).");
 		ERR_FAIL_V(ERR_FILE_CORRUPT);
 	}
 
+/*
+if (local_path.find("enemy.xml")>=0) {
+	String tabs;
+	for (int i=0; i<tag_stack.size(); ++i) tabs+="\t";
+	print_line(itos(tag_stack.size())+tabs+tag->name);
+}
+*/
+
 	r_v=Variant();
-	r_name="";
 
 
 	//ERR_FAIL_COND_V(tag->name!="property",ERR_FILE_CORRUPT);
@@ -352,8 +1271,9 @@ Error ResourceInteractiveLoaderXML::parse_property(Variant& r_v, String &r_name)
 
 	//String name=tag->args["name"];
 	//ERR_FAIL_COND_V(name=="",ERR_FILE_CORRUPT);
+	r_name=tag->args["name"];
+
 	String type=tag->name;
-	String name=tag->args["name"];
 
 	if (type=="") {
 		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": 'type' field is empty.");
@@ -362,820 +1282,37 @@ Error ResourceInteractiveLoaderXML::parse_property(Variant& r_v, String &r_name)
 
 	if (type=="dictionary") {
 
-        Dictionary d( tag->args.has("shared") && (String(tag->args["shared"])=="true" || String(tag->args["shared"])=="1"));
-
-		while(true) {
-
-			Error err;
-			String tagname;
-			Variant key;
-
-			int dictline = get_current_line();
-
-
-			err=parse_property(key,tagname);
-
-			if (err && err!=ERR_FILE_EOF) {
-				ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error parsing dictionary: "+name+" (from line "+itos(dictline)+")");
-				ERR_FAIL_COND_V(err && err!=ERR_FILE_EOF,err);
-			}
-			//ERR_FAIL_COND_V(tagname!="key",ERR_FILE_CORRUPT);
-			if (err)
-				break;
-			Variant value;
-			err=parse_property(value,tagname);
-			if (err) {
-				ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error parsing dictionary: "+name+" (from line "+itos(dictline)+")");
-			}
-
-			ERR_FAIL_COND_V(err,err);
-			//ERR_FAIL_COND_V(tagname!="value",ERR_FILE_CORRUPT);
-
-			d[key]=value;
-		}
-
-
-		//err=parse_property_data(name); // skip the rest
-		//ERR_FAIL_COND_V(err,err);
-
-		r_name=name;
-		r_v=d;
-		return OK;
-
+		return _parse_dictionary(tag, r_v, r_name);
 	} else if (type=="array") {
 
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-
-
-		int len=tag->args["len"].to_int();
-		bool shared = tag->args.has("shared") && (String(tag->args["shared"])=="true" || String(tag->args["shared"])=="1");
-
-		Array array(shared);
-		array.resize(len);
-
-		Error err;
-		Variant v;
-		String tagname;
-		int idx=0;
-		while( (err=parse_property(v,tagname))==OK ) {
-
-			ERR_CONTINUE( idx <0 || idx >=len );
-
-			array.set(idx,v);
-			idx++;
-		}
-
-		if (idx!=len) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array (size mismatch): "+name);
-			ERR_FAIL_COND_V(idx!=len,err);
-		}
-
-		if (err!=ERR_FILE_EOF) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array: "+name);
-			ERR_FAIL_COND_V(err!=ERR_FILE_EOF,err);
-		}
-
-		//err=parse_property_data(name); // skip the rest
-		//ERR_FAIL_COND_V(err,err);
-
-		r_name=name;
-		r_v=array;
-		return OK;
-
+		return _parse_array(tag, r_v, r_name);
 	} else if (type=="resource") {
 
-		if (tag->args.has("path")) {
-
-			String path=tag->args["path"];
-			String hint;
-			if (tag->args.has("resource_type"))
-				hint=tag->args["resource_type"];
-
-			if (path.begins_with("local://"))
-				path=path.replace("local://",local_path+"::");
-			else if (path.find("://")==-1 && path.is_rel_path()) {
-				// path is relative to file being loaded, so convert to a resource path
-				path=Globals::get_singleton()->localize_path(local_path.get_base_dir()+"/"+path);
-
-			}
-
-			//take advantage of the resource loader cache. The resource is cached on it, even if
-			RES res=ResourceLoader::load(path,hint);
-
-
-			if (res.is_null()) {
-
-				WARN_PRINT(String("Couldn't load resource: "+path).ascii().get_data());
-			}
-
-			r_v=res.get_ref_ptr();
-		}
-
-
-
-		Error err=goto_end_of_tag();
-		if (err) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error closing <resource> tag.");
-			ERR_FAIL_COND_V(err,err);
-		}
-
-
-		r_name=name;
-
-		return OK;
-
+		return _parse_resource(tag, r_v, r_name);
 	} else if (type=="image") {
 
-		if (!tag->args.has("encoding")) {
-			//empty image
-			r_v=Image();
-			String sdfsdfg;
-			Error err=parse_property_data(sdfsdfg);
-			return OK;
-		}
-
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'encoding' field.");
-		ERR_FAIL_COND_V( !tag->args.has("encoding"), ERR_FILE_CORRUPT );
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'width' field.");
-		ERR_FAIL_COND_V( !tag->args.has("width"), ERR_FILE_CORRUPT );
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'height' field.");
-		ERR_FAIL_COND_V( !tag->args.has("height"), ERR_FILE_CORRUPT );
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Image missing 'format' field.");
-		ERR_FAIL_COND_V( !tag->args.has("format"), ERR_FILE_CORRUPT );
-
-		String encoding=tag->args["encoding"];
-
-		if (encoding=="raw") {
-			String width=tag->args["width"];
-			String height=tag->args["height"];
-			String format=tag->args["format"];
-			int mipmaps=tag->args.has("mipmaps")?int(tag->args["mipmaps"].to_int()):int(0);
-			int custom_size = tag->args.has("custom_size")?int(tag->args["custom_size"].to_int()):int(0);
-
-			r_name=name;
-
-			Image::Format imgformat;
-
-
-			if (format=="grayscale") {
-				imgformat=Image::FORMAT_GRAYSCALE;
-			} else if (format=="intensity") {
-				imgformat=Image::FORMAT_INTENSITY;
-			} else if (format=="grayscale_alpha") {
-				imgformat=Image::FORMAT_GRAYSCALE_ALPHA;
-			} else if (format=="rgb") {
-				imgformat=Image::FORMAT_RGB;
-			} else if (format=="rgba") {
-				imgformat=Image::FORMAT_RGBA;
-			} else if (format=="indexed") {
-				imgformat=Image::FORMAT_INDEXED;
-			} else if (format=="indexed_alpha") {
-				imgformat=Image::FORMAT_INDEXED_ALPHA;
-			} else if (format=="bc1") {
-				imgformat=Image::FORMAT_BC1;
-			} else if (format=="bc2") {
-				imgformat=Image::FORMAT_BC2;
-			} else if (format=="bc3") {
-				imgformat=Image::FORMAT_BC3;
-			} else if (format=="bc4") {
-				imgformat=Image::FORMAT_BC4;
-			} else if (format=="bc5") {
-				imgformat=Image::FORMAT_BC5;
-			} else if (format=="pvrtc2") {
-				imgformat=Image::FORMAT_PVRTC2;
-			} else if (format=="pvrtc2a") {
-				imgformat=Image::FORMAT_PVRTC2_ALPHA;
-			} else if (format=="pvrtc4") {
-				imgformat=Image::FORMAT_PVRTC4;
-			} else if (format=="pvrtc4a") {
-				imgformat=Image::FORMAT_PVRTC4_ALPHA;
-			} else if (format=="etc") {
-				imgformat=Image::FORMAT_ETC;
-			} else if (format=="atc") {
-				imgformat=Image::FORMAT_ATC;
-			} else if (format=="atcai") {
-				imgformat=Image::FORMAT_ATC_ALPHA_INTERPOLATED;
-			} else if (format=="atcae") {
-				imgformat=Image::FORMAT_ATC_ALPHA_EXPLICIT;
-			} else if (format=="custom") {
-				imgformat=Image::FORMAT_CUSTOM;
-			} else {
-
-				ERR_FAIL_V( ERR_FILE_CORRUPT );
-			}
-
-
-			int datasize;
-			int w=width.to_int();
-			int h=height.to_int();
-
-			if (w == 0 && h == 0) {
-				//r_v = Image(w, h, imgformat);
-				r_v=Image();
-				String sdfsdfg;
-				Error err=parse_property_data(sdfsdfg);
-				return OK;
-			};
-
-			if (imgformat==Image::FORMAT_CUSTOM) {
-
-				datasize=custom_size;
-			} else {
-
-				datasize = Image::get_image_data_size(h,w,imgformat,mipmaps);
-			}
-
-			if (datasize==0) {
-				//r_v = Image(w, h, imgformat);
-				r_v=Image();
-				String sdfsdfg;
-				Error err=parse_property_data(sdfsdfg);
-				return OK;
-			};
-
-			DVector<uint8_t> pixels;
-			pixels.resize(datasize);
-			DVector<uint8_t>::Write wb = pixels.write();
-
-			int idx=0;
-			uint8_t byte;
-			while( idx<datasize*2) {
-
-				CharType c=get_char();
-
-				ERR_FAIL_COND_V(c=='<',ERR_FILE_CORRUPT);
-
-				if ( (c>='0' && c<='9') || (c>='A' && c<='F') || (c>='a' && c<='f') ) {
-
-					if (idx&1) {
-
-						byte|=HEX2CHR(c);
-						wb[idx>>1]=byte;
-					} else {
-
-						byte=HEX2CHR(c)<<4;
-					}
-
-					idx++;
-				}
-
-			}
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-			wb=DVector<uint8_t>::Write();
-
-			r_v=Image(w,h,mipmaps,imgformat,pixels);
-			String sdfsdfg;
-			Error err=parse_property_data(sdfsdfg);
-			ERR_FAIL_COND_V(err,err);
-
-			return OK;
-		}
-
-		ERR_FAIL_V(ERR_FILE_CORRUPT);
-
+		return _parse_image(tag, r_v, r_name);
 	} else if (type=="raw_array") {
 
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": RawArray missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();
-
-		DVector<uint8_t> bytes;
-		bytes.resize(len);
-		DVector<uint8_t>::Write w=bytes.write();
-		uint8_t *bytesptr=w.ptr();
-		int idx=0;
-		uint8_t byte;
-
-		while( idx<len*2) {
-
-			CharType c=get_char();
-			if (c<=32)
-				continue;
-
-			if (idx&1) {
-
-				byte|=HEX2CHR(c);
-				bytesptr[idx>>1]=byte;
-				//printf("%x\n",int(byte));
-			} else {
-
-				byte=HEX2CHR(c)<<4;
-			}
-
-			idx++;
-		}
-
-		ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-		w=DVector<uint8_t>::Write();
-		r_v=bytes;
-		String sdfsdfg;
-		Error err=parse_property_data(sdfsdfg);
-		ERR_FAIL_COND_V(err,err);
-		r_name=name;
-
-		return OK;
-
+		return _parse_raw_array(tag, r_v, r_name);
 	} else if (type=="int_array") {
 
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();
-
-		DVector<int> ints;
-		ints.resize(len);
-		DVector<int>::Write w=ints.write();
-		int *intsptr=w.ptr();
-		int idx=0;
-		String str;
-#if 0
-		while( idx<len ) {
-
-
-			CharType c=get_char();
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-			if (c<33 || c==',' || c=='<') {
-
-				if (str.length()) {
-
-					intsptr[idx]=str.to_int();
-					str="";
-					idx++;
-				}
-
-				if (c=='<') {
-
-					while(get_char()!='>' && !f->eof_reached()) {}
-					ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-					break;
-				}
-
-			} else {
-
-				str+=c;
-			}
-		}
-
-#else
-
-		Vector<char> tmpdata;
-
-		while( idx<len ) {
-
-			bool end=false;
-			Error err = _parse_array_element(tmpdata,true,f,&end);
-			ERR_FAIL_COND_V(err,err);
-
-			intsptr[idx]=String::to_int(&tmpdata[0]);
-			idx++;
-			if (end)
-				break;
-
-		}
-
-#endif
-		w=DVector<int>::Write();
-
-		r_v=ints;
-		Error err=goto_end_of_tag();
-		ERR_FAIL_COND_V(err,err);
-		r_name=name;
-
-		return OK;
+		return _parse_int_array(tag, r_v, r_name);
 	} else if (type=="real_array") {
 
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();;
-
-		DVector<real_t> reals;
-		reals.resize(len);
-		DVector<real_t>::Write w=reals.write();
-		real_t *realsptr=w.ptr();
-		int idx=0;
-		String str;
-
-
-#if 0
-		while( idx<len ) {
-
-
-			CharType c=get_char();
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-
-			if (c<33 || c==',' || c=='<') {
-
-				if (str.length()) {
-
-					realsptr[idx]=str.to_double();
-					str="";
-					idx++;
-				}
-
-				if (c=='<') {
-
-					while(get_char()!='>' && !f->eof_reached()) {}
-					ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-					break;
-				}
-
-			} else {
-
-				str+=c;
-			}
-		}
-
-#else
-
-
-
-		Vector<char> tmpdata;
-
-		while( idx<len ) {
-
-			bool end=false;
-			Error err = _parse_array_element(tmpdata,true,f,&end);
-			ERR_FAIL_COND_V(err,err);
-
-			realsptr[idx]=String::to_double(&tmpdata[0]);
-			idx++;
-
-			if (end)
-				break;
-		}
-
-#endif
-
-		w=DVector<real_t>::Write();
-		r_v=reals;
-
-		Error err=goto_end_of_tag();
-		ERR_FAIL_COND_V(err,err);
-		r_name=name;
-
-		return OK;
+		return _parse_real_array(tag, r_v, r_name);
 	} else if (type=="string_array") {
-#if 0
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();
 
-		DVector<String> strings;
-		strings.resize(len);
-		DVector<String>::Write w=strings.write();
-		String *stringsptr=w.ptr();
-		int idx=0;
-		String str;
-
-		bool inside_str=false;
-		CharString cs;
-		while( idx<len ) {
-
-
-			CharType c=get_char();
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-
-			if (c=='"') {
-				if (inside_str) {
-
-					cs.push_back(0);
-					String str;
-					str.parse_utf8(cs.get_data());
-					unquote(str);
-					stringsptr[idx]=str;
-					cs.clear();
-					idx++;
-					inside_str=false;
-				} else {
-					inside_str=true;
-				}
-			} else if (c=='<') {
-
-				while(get_char()!='>' && !f->eof_reached()) {}
-				ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-				break;
-
-
-			} else if (inside_str){
-
-				cs.push_back(c);
-			}
-		}
-		w=DVector<String>::Write();
-		r_v=strings;
-		String sdfsdfg;
-		Error err=parse_property_data(sdfsdfg);
-		ERR_FAIL_COND_V(err,err);
-
-		r_name=name;
-
-		return OK;
-#endif
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": String Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-
-
-		int len=tag->args["len"].to_int();
-
-		StringArray array;
-		array.resize(len);
-		DVector<String>::Write w = array.write();
-
-		Error err;
-		Variant v;
-		String tagname;
-		int idx=0;
-
-
-		while( (err=parse_property(v,tagname))==OK ) {
-
-			ERR_CONTINUE( idx <0 || idx >=len );
-			String str = v; //convert back to string
-			w[idx]=str;
-			idx++;
-		}
-
-		if (idx!=len) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array (size mismatch): "+name);
-			ERR_FAIL_COND_V(idx!=len,err);
-		}
-
-		if (err!=ERR_FILE_EOF) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Error loading array: "+name);
-			ERR_FAIL_COND_V(err!=ERR_FILE_EOF,err);
-		}
-
-		//err=parse_property_data(name); // skip the rest
-		//ERR_FAIL_COND_V(err,err);
-
-		r_name=name;
-		r_v=array;
-		return OK;
-
+		return _parse_string_array(tag, r_v, r_name);
 	} else if (type=="vector3_array") {
 
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();;
-
-		DVector<Vector3> vectors;
-		vectors.resize(len);
-		DVector<Vector3>::Write w=vectors.write();
-		Vector3 *vectorsptr=w.ptr();
-		int idx=0;
-		int subidx=0;
-		Vector3 auxvec;
-		String str;
-
-//		uint64_t tbegin = OS::get_singleton()->get_ticks_usec();
-#if 0
-		while( idx<len ) {
-
-
-			CharType c=get_char();
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-
-			if (c<33 || c==',' || c=='<') {
-
-				if (str.length()) {
-
-					auxvec[subidx]=str.to_double();
-					subidx++;
-					str="";
-					if (subidx==3) {
-						vectorsptr[idx]=auxvec;
-
-						idx++;
-						subidx=0;
-					}
-				}
-
-				if (c=='<') {
-
-					while(get_char()!='>' && !f->eof_reached()) {}
-					ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-					break;
-				}
-
-			} else {
-
-				str+=c;
-			}
-		}
-#else
-
-		Vector<char> tmpdata;
-
-		while( idx<len ) {
-
-			bool end=false;
-			Error err = _parse_array_element(tmpdata,true,f,&end);
-			ERR_FAIL_COND_V(err,err);
-
-
-			auxvec[subidx]=String::to_double(&tmpdata[0]);
-			subidx++;
-			if (subidx==3) {
-				vectorsptr[idx]=auxvec;
-
-				idx++;
-				subidx=0;
-			}
-
-			if (end)
-				break;
-		}
-
-
-
-#endif
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Premature end of vector3 array");
-		ERR_FAIL_COND_V(idx<len,ERR_FILE_CORRUPT);
-//		double time_taken = (OS::get_singleton()->get_ticks_usec() - tbegin)/1000000.0;
-
-
-		w=DVector<Vector3>::Write();
-		r_v=vectors;
-		String sdfsdfg;
-		Error err=goto_end_of_tag();
-		ERR_FAIL_COND_V(err,err);
-		r_name=name;
-
-		return OK;
-
+		return _parse_vector3_array(tag, r_v, r_name);
 	} else if (type=="vector2_array") {
 
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();;
+		return _parse_vector2_array(tag, r_v, r_name);
+	} else if (type=="color_array")
 
-		DVector<Vector2> vectors;
-		vectors.resize(len);
-		DVector<Vector2>::Write w=vectors.write();
-		Vector2 *vectorsptr=w.ptr();
-		int idx=0;
-		int subidx=0;
-		Vector2 auxvec;
-		String str;
-
-//		uint64_t tbegin = OS::get_singleton()->get_ticks_usec();
-#if 0
-		while( idx<len ) {
-
-
-			CharType c=get_char();
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-
-			if (c<22 || c==',' || c=='<') {
-
-				if (str.length()) {
-
-					auxvec[subidx]=str.to_double();
-					subidx++;
-					str="";
-					if (subidx==2) {
-						vectorsptr[idx]=auxvec;
-
-						idx++;
-						subidx=0;
-					}
-				}
-
-				if (c=='<') {
-
-					while(get_char()!='>' && !f->eof_reached()) {}
-					ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-					break;
-				}
-
-			} else {
-
-				str+=c;
-			}
-		}
-#else
-
-		Vector<char> tmpdata;
-
-		while( idx<len ) {
-
-			bool end=false;
-			Error err = _parse_array_element(tmpdata,true,f,&end);
-			ERR_FAIL_COND_V(err,err);
-
-
-			auxvec[subidx]=String::to_double(&tmpdata[0]);
-			subidx++;
-			if (subidx==2) {
-				vectorsptr[idx]=auxvec;
-
-				idx++;
-				subidx=0;
-			}
-
-			if (end)
-				break;
-		}
-
-
-
-#endif
-		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Premature end of vector2 array");
-		ERR_FAIL_COND_V(idx<len,ERR_FILE_CORRUPT);
-//		double time_taken = (OS::get_singleton()->get_ticks_usec() - tbegin)/1000000.0;
-
-
-		w=DVector<Vector2>::Write();
-		r_v=vectors;
-		String sdfsdfg;
-		Error err=goto_end_of_tag();
-		ERR_FAIL_COND_V(err,err);
-		r_name=name;
-
-		return OK;
-
-	} else if (type=="color_array") {
-
-		if (!tag->args.has("len")) {
-			ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Array missing 'len' field: "+name);
-			ERR_FAIL_COND_V(!tag->args.has("len"),ERR_FILE_CORRUPT);
-		}
-		int len=tag->args["len"].to_int();;
-
-		DVector<Color> colors;
-		colors.resize(len);
-		DVector<Color>::Write w=colors.write();
-		Color *colorsptr=w.ptr();
-		int idx=0;
-		int subidx=0;
-		Color auxcol;
-		String str;
-
-		while( idx<len ) {
-
-
-			CharType c=get_char();
-			ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-
-
-			if (c<33 || c==',' || c=='<') {
-
-				if (str.length()) {
-
-					auxcol[subidx]=str.to_double();
-					subidx++;
-					str="";
-					if (subidx==4) {
-						colorsptr[idx]=auxcol;
-						idx++;
-						subidx=0;
-					}
-				}
-
-				if (c=='<') {
-
-					while(get_char()!='>' && !f->eof_reached()) {}
-					ERR_FAIL_COND_V(f->eof_reached(),ERR_FILE_CORRUPT);
-					break;
-				}
-
-			} else {
-
-				str+=c;
-			}
-		}
-		w=DVector<Color>::Write();
-		r_v=colors;
-		String sdfsdfg;
-		Error err=parse_property_data(sdfsdfg);
-		ERR_FAIL_COND_V(err,err);
-		r_name=name;
-
-		return OK;
-	}
+		return _parse_color_array(tag, r_v, r_name);
 
 
 	String data;
@@ -1323,7 +1460,9 @@ Error ResourceInteractiveLoaderXML::parse_property(Variant& r_v, String &r_name)
 		ERR_EXPLAIN(local_path+":"+itos(get_current_line())+": Unrecognized tag in file: "+type);
 		ERR_FAIL_V(ERR_FILE_CORRUPT);
 	}
-	r_name=name;
+
+	close_tag(type);
+
 	return OK;
 }
 
@@ -1331,17 +1470,7 @@ Error ResourceInteractiveLoaderXML::parse_property(Variant& r_v, String &r_name)
 
 int ResourceInteractiveLoaderXML::get_current_line() const {
 
-	return lines;
-}
-
-
-uint8_t ResourceInteractiveLoaderXML::get_char() const {
-
-	uint8_t c = f->get_8();
-	if (c=='\n')
-		lines++;
-	return c;
-
+	return parser.get_current_line();
 }
 
 
@@ -1389,17 +1518,22 @@ Error ResourceInteractiveLoaderXML::poll() {
 		return error;
 	}
 
-	bool exit;
-	Tag *tag = parse_tag(&exit);
-
+	Tag *tag = parse_tag();
 
 	if (!tag) {
-		error=ERR_FILE_CORRUPT;
-		if (!exit) // shouldn't have exited
+		if (error!=ERR_FILE_EOF) // shouldn't have exited
 			ERR_FAIL_V(error);
 		error=ERR_FILE_EOF;
 		return error;
 	}
+
+/*
+if (local_path.find("enemy.xml")>=0) {
+	String tabs;
+	for (int i=0; i<tag_stack.size(); ++i) tabs+="\t";
+	print_line(itos(tag_stack.size())+tabs+tag->name);
+}
+*/
 
 	RES res;
 	//Object *obj=NULL;
@@ -1574,13 +1708,11 @@ void ResourceInteractiveLoaderXML::get_dependencies(FileAccess *f,List<String> *
 	ERR_FAIL_COND(error!=OK);
 
 	while(true) {
-		bool exit;
-		Tag *tag = parse_tag(&exit);
 
+		Tag *tag = parse_tag();
 
 		if (!tag) {
-			error=ERR_FILE_CORRUPT;
-			ERR_FAIL_COND(!exit);
+			ERR_FAIL_COND(error!=ERR_FILE_EOF);
 			error=ERR_FILE_EOF;
 			return;
 		}
@@ -1629,8 +1761,10 @@ void ResourceInteractiveLoaderXML::open(FileAccess *p_f) {
 	lines=1;
 	f=p_f;
 
+	parser.open_file(f);
 
 	ResourceInteractiveLoaderXML::Tag *tag = parse_tag();
+
 	if (!tag || tag->name!="?xml" || !tag->args.has("version") || !tag->args.has("encoding") || tag->args["encoding"]!="UTF-8") {
 
 		error=ERR_FILE_CORRUPT;
@@ -1701,9 +1835,10 @@ String ResourceInteractiveLoaderXML::recognize(FileAccess *p_f) {
 	lines=1;
 	f=p_f;
 
+	parser.open_file(f);
+
 	ResourceInteractiveLoaderXML::Tag *tag = parse_tag();
 	if (!tag || tag->name!="?xml" || !tag->args.has("version") || !tag->args.has("encoding") || tag->args["encoding"]!="UTF-8") {
-
 
 		return ""; //unrecognized
 	}

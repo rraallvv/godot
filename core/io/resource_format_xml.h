@@ -31,6 +31,7 @@
 
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
+#include "io/xml_parser.h"
 #include "os/file_access.h"
 
 
@@ -41,6 +42,7 @@ class ResourceInteractiveLoaderXML : public ResourceInteractiveLoader {
 	String res_path;
 
 	FileAccess *f;
+	XMLParser parser;
 
 	struct Tag {
 
@@ -48,9 +50,18 @@ class ResourceInteractiveLoaderXML : public ResourceInteractiveLoader {
 		HashMap<String,String> args;
 	};
 
-	_FORCE_INLINE_ Error _parse_array_element(Vector<char> &buff,bool p_number_only,FileAccess *f,bool *end);
-
-
+	_FORCE_INLINE_ Error _parse_array_element(Vector<char> &buff,bool p_number_only,char *&data,bool *end);
+	_FORCE_INLINE_ Error _parse_dictionary(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_resource(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_image(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_raw_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_int_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_real_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_string_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_vector3_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_vector2_array(Tag* tag, Variant& r_v, String &r_name);
+	_FORCE_INLINE_ Error _parse_color_array(Tag* tag, Variant& r_v, String &r_name);
 
 	List<StringName> ext_resources;
 
@@ -59,14 +70,13 @@ class ResourceInteractiveLoaderXML : public ResourceInteractiveLoader {
 	String resource_type;
 
 	mutable int lines;
-	uint8_t get_char() const;
 	int get_current_line() const;
 
 friend class ResourceFormatLoaderXML;
 	List<Tag> tag_stack;
 
 	List<RES> resource_cache;
-	Tag* parse_tag(bool* r_exit=NULL,bool p_printerr=true);
+	Tag* parse_tag();
 	Error close_tag(const String& p_name);
 	_FORCE_INLINE_ void unquote(String& p_str);
 	Error goto_end_of_tag();

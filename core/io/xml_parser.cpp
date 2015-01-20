@@ -103,7 +103,7 @@ static inline bool _is_white_space(char c)
 bool XMLParser::_set_text(char* start, char* end) {
 	// check if text is more than 2 characters, and if not, check if there is
 	// only white space, so that this text won't be reported
-	if (end - start < 3)
+	if (end - start < 2)//3)
 	{
 		char* p = start;
 		for(; p != end; ++p)
@@ -114,9 +114,14 @@ bool XMLParser::_set_text(char* start, char* end) {
 			return false;
 	}
 
+
+/*
 	// set current text to the parsed text, and replace xml special characters
 	String s = String::utf8(start, (int)(end - start));
 	node_name = _replace_special_characters(s);
+*/
+	node_name = "";
+
 
 	// current XML node type is text
 	node_type = NODE_TEXT;
@@ -366,6 +371,11 @@ uint64_t XMLParser::get_node_offset() const {
 
 	return node_offset;
 };
+int XMLParser::get_node_length() const {
+
+	return P-get_node_ptr();
+}
+
 
 Error XMLParser::seek(uint64_t p_pos) {
 
@@ -425,12 +435,20 @@ XMLParser::NodeType XMLParser::get_node_type() {
 
 	return node_type;
 }
-String XMLParser::get_node_data() const {
+String XMLParser::get_node_data() {
 
 	ERR_FAIL_COND_V( node_type != NODE_TEXT, "");
+
+	// set current text to the parsed text, and replace xml special characters
+	String s = String::utf8(get_node_ptr(), get_node_length());
+	node_name = _replace_special_characters(s);
+
 	return node_name;
 }
+char *XMLParser::get_node_ptr() const {
 
+	return data+node_offset;
+}
 String XMLParser::get_node_name() const {
 	ERR_FAIL_COND_V( node_type == NODE_TEXT, "");
 	return node_name;
@@ -494,6 +512,19 @@ String XMLParser::get_attribute_value_safe(const String& p_name) const {
 bool XMLParser::is_empty() const {
 
 	return node_empty;
+}
+
+Error XMLParser::open_file(const FileAccess* p_file) {
+
+	length = p_file->get_len();
+	ERR_FAIL_COND_V(length<1, ERR_FILE_CORRUPT);
+
+	data = memnew_arr( char, length+1);
+	p_file->get_buffer((uint8_t*)data,length);
+	data[length]=0;
+	P=data;
+	return OK;
+
 }
 
 Error XMLParser::open_buffer(const Vector<uint8_t>& p_buffer) {
