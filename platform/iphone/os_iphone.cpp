@@ -464,6 +464,16 @@ void OSIPhone::set_cursor_shape(CursorShape p_shape) {
 
 };
 
+String OSIPhone::get_executable_path() const {
+	CFBundleRef app_bundle          = CFBundleGetMainBundle();
+	CFURLRef	executable_url_ref  = CFBundleCopyExecutableURL(app_bundle);
+	CFStringRef executable_path_ref = CFURLCopyFileSystemPath(executable_url_ref,kCFURLPOSIXPathStyle);
+	String      executable_path     = String(CFStringGetCStringPtr(executable_path_ref,CFStringGetSystemEncoding()));
+	CFRelease(executable_url_ref);
+	CFRelease(executable_path_ref);
+	return executable_path;
+};
+
 String OSIPhone::get_data_dir() const {
 
 	return data_dir;
