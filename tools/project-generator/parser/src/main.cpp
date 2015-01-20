@@ -220,6 +220,8 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	string platform = "mac_os_x";
+
 	inputFile = string(argv[1]);
 	size_t pos = inputFile.find_last_of("/\\");
 	outputDir = inputFile.substr(0,pos+1);
@@ -244,9 +246,19 @@ int main(int argc, char** argv) {
 	unordered_map<string,myset> linkLibs;
 	myvector objFiles;
 	string prevLib;
+
+	myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
+
 	while (getline(stream, line)) {
 
-		if (line.find("g++ -o")!=string::npos || line.find("gcc -o")!=string::npos) {
+		bool supported = false;
+
+		for (auto it = supportedCompilers.begin(); it != supportedCompilers.end(); ++it) {
+			if (line.find(*it + " -o")!=string::npos)
+				supported = true;
+		}
+
+		if (supported) {
 
 			size_t s = line.find(" -o ");
 			size_t e = line.find(" ", s+4);
@@ -595,7 +607,7 @@ int main(int argc, char** argv) {
 
 	cout << "running project generator script for '" << targetName << ".xml'" << endl;
 
-	string cmd = "cd "+ outputDir + " && " + "source/generate.py -i " + targetName + ".xml -p mac_os_x -g xcode -n " + targetName + " -o ~/Desktop/Godot/tools/project-generator";
+	string cmd = "cd "+ outputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName + " -o ~/Desktop/Godot/tools/project-generator";
 
 	cout << cmd << endl;
 
