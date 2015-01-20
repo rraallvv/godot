@@ -407,6 +407,7 @@ int main(int argc, char** argv) {
 
 
 	string inputProjectPath = "../../";
+	myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch"};
 
 	// executable targets
 	for ( auto tit = excs.begin(); tit != excs.end(); ++tit ) {
@@ -446,7 +447,15 @@ int main(int argc, char** argv) {
 		//for ( auto it = compilerFlags.begin(); it != compilerFlags.end(); ++it) {
 		for ( auto it = flags[*tit].begin(); it != flags[*tit].end(); ++it) {
 
-			out << "-" << *it << " ";
+			string flag = "-" + *it;
+			bool exclude = false;
+			for (auto eflag = excludeFlags.begin(); eflag != excludeFlags.end(); ++eflag) {
+
+				if ((flag.compare(*eflag)==0) || (flag.find(*eflag+" ")!=string::npos))
+					exclude = true;
+			}
+			if (!exclude)
+				out << flag << " ";
 		}
 		out << "\" />" << endl;
 
@@ -529,9 +538,15 @@ int main(int argc, char** argv) {
 			out << "\t<compiler program=\"clang\" flags=\"";
 			for ( auto it = flags[*lit].begin(); it != flags[*lit].end(); ++it) {
 
-				//if (compilerFlags.find(*it)==compilerFlags.end()) {
-					out << "-" << *it << " ";
-				//}
+				string flag = "-" + *it;
+				bool exclude = false;
+				for (auto eflag = excludeFlags.begin(); eflag != excludeFlags.end(); ++eflag) {
+
+					if ((flag.compare(*eflag)==0) || (flag.find(*eflag+" ")!=string::npos))
+						exclude = true;
+				}
+				if (!exclude)
+					out << flag << " ";
 			}
 			out << "\" />" << endl;
 
