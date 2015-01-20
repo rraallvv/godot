@@ -865,7 +865,7 @@ void OS_OSX::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 
 	window_object = [[GodotWindow alloc]
-	    initWithContentRect:NSMakeRect(0, 0, p_desired.width, p_desired.height)
+	    initWithContentRect:[[NSScreen mainScreen] visibleFrame]//NSMakeRect(0, 0, p_desired.width, p_desired.height)
 		      styleMask:styleMask
 			backing:NSBackingStoreBuffered
 			  defer:NO];
