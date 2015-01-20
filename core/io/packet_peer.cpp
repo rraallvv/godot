@@ -120,7 +120,7 @@ void PacketPeer::_bind_methods() {
 
 void PacketPeerStream::_set_stream_peer(REF p_peer) {
 
-	ERR_FAIL_COND(p_peer.is_null());
+	//ERR_FAIL_COND(p_peer.is_null());
 	set_stream_peer(p_peer);
 }
 
@@ -225,7 +225,7 @@ int PacketPeerStream::get_max_packet_size() const {
 
 void PacketPeerStream::set_stream_peer(const Ref<StreamPeer> &p_peer) {
 
-	ERR_FAIL_COND(p_peer.is_null());
+	//ERR_FAIL_COND(p_peer.is_null());
 
 	if (p_peer.ptr() != peer.ptr()) {
 		ring_buffer.advance_read(ring_buffer.data_left()); // reset the ring buffer
