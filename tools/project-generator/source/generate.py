@@ -67,8 +67,13 @@ def touch(filename):
 				raise
 		open(filename, 'w').close()
 
-def create_project(filename, platform_string, data_path, resource_path):
+def create_project(filename, target_path, platform_string, data_path, resource_path):
 	target_project = project.Project(platform_string)
+
+	build_dir = target_path + "/" + platform_string + "/"
+	build_dir = build_dir.replace("\\", "/")
+	target_project.settings.set_build_dir(build_dir)
+
 	parser = project_parser.Parser()
 	node = minidom.parse(filename)
 
@@ -87,13 +92,13 @@ def create_project(filename, platform_string, data_path, resource_path):
 
 	return target_project
 
-def load_project(filename, platform_string, data_path, resource_path):
-	target_project = create_project(filename, platform_string, data_path, resource_path)
+def load_project(filename, target_path, platform_string, data_path, resource_path):
+	target_project = create_project(filename, target_path, platform_string, data_path, resource_path)
 	for dependency in target_project.dependencies():
 		if not dependency.merge:
 			raise "Not supported!!"
 
-		p = load_project(dependency.filename, platform_string, data_path, resource_path)
+		p = load_project(dependency.filename, target_path, platform_string, data_path, resource_path)
 		target_project.merge(p)
 
 	return target_project
@@ -110,7 +115,7 @@ if options.project_name == "":
 	print("Must specify project name")
 	exit(-1)
 
-target_project = load_project(options.input_filename, options.platform_string, options.data_path, options.resource_path)
+target_project = load_project(options.input_filename, options.target_path, options.platform_string, options.data_path, options.resource_path)
 
 if options.project_name != "":
 	target_project.set_name(options.project_name)

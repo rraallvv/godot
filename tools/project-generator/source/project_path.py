@@ -33,3 +33,10 @@ class Path:
 		new_path = self._relpath(self.path_string, start_path_string)
 		new_path = new_path.replace("\\", "/")
 		return new_path
+
+	def absolute(self, path):
+		if not os.path.isabs(self.path_string):
+			new_path = os.path.abspath(os.path.join(path, self.path_string))
+			return new_path
+		else:
+			return self.path_string

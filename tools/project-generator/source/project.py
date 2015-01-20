@@ -76,6 +76,7 @@ class Settings(object):
 		self.compiler_executable = None
 		self.compiler_flags = []
 		self.linker_flags = []
+		self.build_dir = ""
 
 	def extend(self, setting):
 		self.defines.extend(setting.defines)
@@ -98,7 +99,7 @@ class Settings(object):
 		self.defines.append(name)
 
 	def add_header_filename(self, filename):
-		direcory = os.path.split(filename)[0]
+		direcory = os.path.dirname(filename)
 		self.header_paths.append(direcory)
 		self.root_source_files.search_filename(filename)
 
@@ -106,24 +107,27 @@ class Settings(object):
 		self.header_paths.append(path)
 		header_extensions = ["h", "hpp"]
 		empty_exclude_list = []
-		self.root_source_files.search_recursive(path, header_extensions, empty_exclude_list)
+		absolute_path = project_path.Path(path).absolute(self.build_dir)
+		self.root_source_files.search_recursive(absolute_path, header_extensions, empty_exclude_list)
 
 	def add_source_filename(self, filename):
 		self.root_source_files.search_filename(filename)
 
 	def add_source_directory(self, path, recursive, exclude_list):
 		extensions = ["cpp", "c", "cc", "h", "pch", "xib", "m", "mm"]
+		absolute_path = project_path.Path(path).absolute(self.build_dir)
 		if recursive:
-			self.root_source_files.search_recursive(path, extensions, exclude_list)
+			self.root_source_files.search_recursive(absolute_path, extensions, exclude_list)
 		else:
-			self.root_source_files.search_directory_only(path, extensions, exclude_list)
+			self.root_source_files.search_directory_only(absolute_path, extensions, exclude_list)
 
 	def add_resource_directory(self, path, recursive, exclude_list):
 		extensions = ["png", "xib", "storyboard", "oes", "oeb", "oec", "jpg", "ogg", "icns", "plist"]
+		absolute_path = project_path.Path(path).absolute(self.build_dir)
 		if recursive:
-			self.root_resource_files.search_recursive(path, extensions, exclude_list)
+			self.root_resource_files.search_recursive(absolute_path, extensions, exclude_list)
 		else:
-			self.root_resource_files.search_directory_only(path, extensions, exclude_list)
+			self.root_resource_files.search_directory_only(absolute_path, extensions, exclude_list)
 
 	def resource_filenames(self):
 		return self.root_resource_files.source_filenames()
@@ -153,6 +157,12 @@ class Settings(object):
 
 	def include_paths(self):
 		return self.header_paths
+
+	def set_build_dir(self, build_dir):
+		self.build_dir = build_dir
+
+	def build_dir(self):
+		return self.build_dir
 
 class Configuration(Settings):
 	def __init__(self, name):
@@ -200,3 +210,4 @@ class Project:
 
 	def name(self):
 		return self.target_name
+
