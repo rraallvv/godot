@@ -499,10 +499,15 @@ class XcodeObjects(XcodeProjectSectionObject):
 		self.build_configurations = []
 		self.configuration_lists = []
 
+		source_filenames = []
+		for source_filename in project.settings.source_filenames():
+			if source_filename[0:14] != "/Applications/":
+				source_filenames.append(source_filename)
+
 		extensions = ["cpp", "c", "cc", "h", "pch", "xib", "storyboard", "m", "mm"]
-		self.generate_build_files(source_root, project.settings.source_filenames(), extensions, object_factory, default_groups.classes)
+		self.generate_build_files(source_root, source_filenames, extensions, object_factory, default_groups.classes)
 		extensions = ["plist"]
-		self.generate_file_references(project.settings.source_filenames(), extensions, object_factory, default_groups.resources)
+		self.generate_file_references(source_filenames, extensions, object_factory, default_groups.resources)
 		extensions = None
 		self.generate_build_files(source_root, project.settings.resource_filenames(), extensions, object_factory, default_groups.resources)
 
