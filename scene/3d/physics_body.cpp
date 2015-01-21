@@ -582,6 +582,11 @@ int RigidBody::get_max_contacts_reported() const{
 	return max_contacts_reported;
 }
 
+void RigidBody::set_applied_torque(const Vector3& p_torque) {
+
+	PhysicsServer::get_singleton()->body_set_applied_torque(get_rid(),p_torque);
+}
+
 void RigidBody::apply_impulse(const Vector3& p_pos, const Vector3& p_impulse) {
 
 	PhysicsServer::get_singleton()->body_apply_impulse(get_rid(),p_pos,p_impulse);
@@ -695,6 +700,7 @@ void RigidBody::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("is_using_continuous_collision_detection"),&RigidBody::is_using_continuous_collision_detection);
 
 	ObjectTypeDB::bind_method(_MD("set_axis_velocity","axis_velocity"),&RigidBody::set_axis_velocity);
+	ObjectTypeDB::bind_method(_MD("set_applied_torque","torque"),&RigidBody::set_applied_torque);
 	ObjectTypeDB::bind_method(_MD("apply_impulse","pos","impulse"),&RigidBody::apply_impulse);
 
 	ObjectTypeDB::bind_method(_MD("set_sleeping","sleeping"),&RigidBody::set_sleeping);

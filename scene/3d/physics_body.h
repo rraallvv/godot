@@ -240,6 +240,7 @@ public:
 
 	Array get_colliding_bodies() const;
 
+	void set_applied_torque(const Vector3& p_torque);
 	void apply_impulse(const Vector3& p_pos, const Vector3& p_impulse);
 
 	RigidBody();
