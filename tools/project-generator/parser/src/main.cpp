@@ -259,10 +259,8 @@ void strReplace( string &s, const string &search, const string &replace )
 	}
 }
 
-#pragma mark -
-
 myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
-string inputProjectPath = "../../";
+string buildDir = "../../";
 myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework", "-isysroot"};
 
 int main(int argc, char** argv) {
@@ -297,7 +295,7 @@ int main(int argc, char** argv) {
 	}
 
 	size_t pos = inputFile.find_last_of("/\\");
-	string outputDir = inputFile.substr(0,pos+1);
+	string inputDir = inputFile.substr(0,pos+1);
 
 	cout << "parsing: '" << inputFile << "'" << endl;
 
@@ -487,7 +485,7 @@ int main(int argc, char** argv) {
 	for ( auto tit = excs.begin(); tit != excs.end(); ++tit ) {
 
 		string filename = trim(*tit, ".", "/", true)+".xml";
-		string outputFile = outputDir+filename;
+		string outputFile = inputDir+filename;
 
 		cout << "generating: '" + outputFile << "'" << endl;
 		ofstream out(outputFile);
@@ -514,8 +512,8 @@ int main(int argc, char** argv) {
 					//cout << path << endl;
 				}
 			} else {
-				path = inputProjectPath + *it;
-				if (!stat( (outputDir + path).c_str(), &info )) {
+				path = buildDir + *it;
+				if (!stat( (inputDir + path).c_str(), &info )) {
 					out << "\t<header directory=\"" << path << "\" />" << endl;
 					//cout << path << endl;
 				}
@@ -562,7 +560,7 @@ int main(int argc, char** argv) {
 		// sources
 		for ( auto it = sources[*tit].begin(); it != sources[*tit].end(); ++it) {
 
-			out << "\t<source filename=\"" << inputProjectPath << *it << "\" />" << endl;
+			out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
 		}
 
 		out << endl;
@@ -599,7 +597,7 @@ int main(int argc, char** argv) {
 		for ( auto lit = linkLibs[*tit].begin(); lit != linkLibs[*tit].end(); ++lit ) {
 
 			string filename = trim(*lit, ".", "/", true)+".xml";
-			string outputFile = outputDir+filename;
+			string outputFile = inputDir+filename;
 
 			cout << "generating: '" + outputFile << "'" << endl;
 			ofstream out(outputFile);
@@ -618,8 +616,8 @@ int main(int argc, char** argv) {
 						//cout << path << endl;
 					}
 				} else {
-					path = inputProjectPath + *it;
-					if (!stat( (outputDir + path).c_str(), &info )) {
+					path = buildDir + *it;
+					if (!stat( (inputDir + path).c_str(), &info )) {
 						out << "\t<header directory=\"" << path << "\" />" << endl;
 						//cout << path << endl;
 					}
@@ -664,7 +662,7 @@ int main(int argc, char** argv) {
 			for ( auto it = sources[*lit].begin(); it != sources[*lit].end(); ++it) {
 
 				//cout << *it << endl;
-				out << "\t<source filename=\"" << inputProjectPath << *it << "\" />" << endl;
+				out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
 			}
 
 			out << endl;
@@ -691,7 +689,7 @@ int main(int argc, char** argv) {
 
 	cout << "running project generator script for '" << targetName << ".xml'" << endl;
 
-	string cmd = "cd "+ outputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName + " -o ~/Desktop/Godot/tools/project-generator";
+	string cmd = "cd "+ inputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName;// + " -o ~/Desktop/godot/tools/project-generator";
 
 	cout << cmd << endl;
 

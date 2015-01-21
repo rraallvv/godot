@@ -70,7 +70,7 @@ def touch(filename):
 def create_project(filename, target_path, platform_string, data_path, resource_path):
 	target_project = project.Project(platform_string)
 
-	build_dir = target_path + "/" + platform_string + "/"
+	build_dir = os.path.join(target_path, platform_string) + "/"
 	build_dir = build_dir.replace("\\", "/")
 	target_project.settings.set_build_dir(build_dir)
 
@@ -114,6 +114,9 @@ def get_class( kls ):
 if options.project_name == "":
 	print("Must specify project name")
 	exit(-1)
+
+if options.target_path == "":
+	options.target_path = os.path.abspath(os.curdir)
 
 target_project = load_project(options.input_filename, options.target_path, options.platform_string, options.data_path, options.resource_path)
 

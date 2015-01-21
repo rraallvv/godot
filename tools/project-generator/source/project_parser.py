@@ -155,7 +155,7 @@ class Parser:
 
 	def convert_path(self, path):
 		if not os.path.isabs(path):
-			build_dir = self.root_directory + self.platform_string + "/"
+			build_dir = os.path.join(self.root_directory, self.platform_string) + "/"
 			build_dir = build_dir.replace("\\", "/")
 			new_path = project_path.Path(path).relative(build_dir)
 			new_path = new_path.replace("\\", "/")
