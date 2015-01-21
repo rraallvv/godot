@@ -736,7 +736,9 @@ class XcodeObjects(XcodeProjectSectionObject):
 		return build_settings
 
 	def create_project_release_configuration_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
-		build_settings = self.create_project_build_settings_for_application(header_paths, compiler_flags, linker_flags, defines, platform)
+		flags = str.join(" ", compiler_flags)
+		flags = re.sub(r'(-[^-]*DEBUG[^-]*)', r'', flags)
+		build_settings = self.create_project_build_settings_for_application(header_paths, flags.split(" "), linker_flags, defines, platform)
 		return self.create_build_configuration(object_creator, "Release", build_settings, "project")
 
 	def create_project_adhoc_configuration_for_application(self, object_creator, name, header_paths, compiler_flags, linker_flags, defines, platform):
