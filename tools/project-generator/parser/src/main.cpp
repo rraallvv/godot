@@ -267,14 +267,25 @@ int main(int argc, char** argv) {
 
 	string inputFile;
 	string platform;
+	bool groupFiles;
+	string dataFiles;
+
+	// Parse command-line arguments
 
 	for (int i=1; i<argc; ++i) {
 		string arg = argv[i];
 
 		if (arg.find("i=")==0)
 			inputFile = arg.substr(2, arg.length()-2);
+
 		else if (arg.find("p=")==0)
 			platform = arg.substr(2, arg.length()-2);
+
+		else if (arg.find("g=yes")==0)
+			groupFiles = true;
+
+		else if (arg.find("d=")==0)
+			dataFiles = arg.substr(2, arg.length()-2);
 	}
 
 	if (!inputFile.length() || !platform.length()) {
@@ -296,6 +307,9 @@ int main(int argc, char** argv) {
 
 	size_t pos = inputFile.find_last_of("/\\");
 	string inputDir = inputFile.substr(0,pos+1);
+
+
+	// Begin parsing input file
 
 	cout << "parsing: '" << inputFile << "'" << endl;
 
@@ -689,7 +703,7 @@ int main(int argc, char** argv) {
 
 	cout << "running project generator script for '" << targetName << ".xml'" << endl;
 
-	string cmd = "cd "+ inputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName;// + " -o ~/Desktop/godot/tools/project-generator";
+	string cmd = "cd "+ inputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName + " -d " + dataFiles;
 
 	cout << cmd << endl;
 
