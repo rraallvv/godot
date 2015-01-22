@@ -80,14 +80,15 @@ def create_project(filename, target_path, platform_string, data_path, resource_p
 	source_root = os.path.abspath(os.path.dirname(filename)) + "/"
 	parser.parse(node, target_project, source_root, platform_string)
 	if target_project.target_type != "library":
-		if data_path != None:
+		if data_path:
 			resource_root = os.path.normpath(data_path) + "/"
 			# print("data:", resource_root)
-			target_project.settings.add_resource_directory(resource_root, False, [])
+			target_project.settings.add_resource_directory(resource_root, True, [])
 
-		resource_root = os.path.normpath(resource_path) + "/" + platform_string + "/"
-		# print("Resource:", resource_root)
-		target_project.settings.add_resource_directory(resource_root, False, [])
+		if resource_path:
+			resource_root = os.path.normpath(resource_path) + "/" + platform_string + "/"
+			# print("Resource:", resource_root)
+			target_project.settings.add_resource_directory(resource_root, True, [])
 
 
 	return target_project
