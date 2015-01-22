@@ -22,7 +22,7 @@ class SourceFileNode:
 				if basename in exclude_basenames:
 					continue
 				extension = os.path.splitext(filename)[1][1:]
-				if extension in extensions:
+				if not extensions or (extension in extensions):
 					complete_path = filename
 					self.filenames.append(complete_path)
 
@@ -45,7 +45,7 @@ class SourceFileNode:
 				continue
 
 			extension = os.path.splitext(filename)[1][1:]
-			if extension in extensions:
+			if not extensions or (extension in extensions):
 				complete_path = filename
 				self.filenames.append(complete_path)
 
@@ -122,7 +122,8 @@ class Settings(object):
 			self.root_source_files.search_directory_only(absolute_path, extensions, exclude_list)
 
 	def add_resource_directory(self, path, recursive, exclude_list):
-		extensions = ["png", "xib", "storyboard", "oes", "oeb", "oec", "jpg", "ogg", "icns", "plist"]
+		extensions = []
+		# extensions = ["png", "xib", "storyboard", "oes", "oeb", "oec", "jpg", "ogg", "icns", "plist", "xml"]
 		absolute_path = project_path.Path(path).absolute(self.build_dir)
 		if recursive:
 			self.root_resource_files.search_recursive(absolute_path, extensions, exclude_list)

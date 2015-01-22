@@ -319,6 +319,8 @@ class PBXFileReference(XcodeProjectObject):
 			self.explicitFileType = "wrapper.application"
 			self.sourceTree = "BUILT_PRODUCTS_DIR"
 			self.includeInIndex = 0
+		else:
+			self.sourceTree = "SOURCE_ROOT"
 #		else:
 #			raise Exception("Unknown extension:" + extension)
 
@@ -504,12 +506,19 @@ class XcodeObjects(XcodeProjectSectionObject):
 			if source_filename[0:14] != "/Applications/":
 				source_filenames.append(source_filename)
 
+		resource_filenames = []
+		for resource_filename in project.settings.resource_filenames():
+			filename = os.path.basename(resource_filename)
+			if filename[0] == ".":
+				continue
+			resource_filenames.append(resource_filename)
+
 		extensions = ["cpp", "c", "cc", "h", "pch", "xib", "storyboard", "m", "mm"]
 		self.generate_build_files(source_root, source_filenames, extensions, object_factory, default_groups.classes)
 		extensions = ["plist"]
 		self.generate_file_references(source_filenames, extensions, object_factory, default_groups.resources)
-		extensions = None
-		self.generate_build_files(source_root, project.settings.resource_filenames(), extensions, object_factory, default_groups.resources)
+		extensions = []
+		self.generate_build_files(source_root, resource_filenames, extensions, object_factory, default_groups.resources)
 
 		if project.target_type == "library":
 			project.library_filenames.append("Foundation.framework") # not sure if all libraries need Foundation?
