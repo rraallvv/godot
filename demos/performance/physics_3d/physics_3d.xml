@@ -86,11 +86,11 @@
 							<array  len="4" shared="false">
 								<dictionary  shared="false">
 									<string> "distance" </string>
-									<real> 40.250626 </real>
+									<real> 74.501106 </real>
 									<string> "x_rot" </string>
-									<real> 0.3625 </real>
+									<real> 0.325 </real>
 									<string> "y_rot" </string>
-									<real> 0.0125 </real>
+									<real> -0.475 </real>
 									<string> "listener" </string>
 									<bool> True </bool>
 									<string> "use_environment" </string>
