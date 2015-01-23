@@ -259,15 +259,64 @@ void strReplace( string &s, const string &search, const string &replace )
 	}
 }
 
+void addSources(myset &sources, const string libName, const string inputDir, const string buildDir,ofstream &out, bool groupFiles = false) {
+	int filesCount = 0;
+	const int maxGroupedFiles = 40;
+
+	ofstream groupOutputFile;
+	string groupFilename;
+	groupFiles = groupFiles && sources.size() > maxGroupedFiles;
+
+	for ( auto it = sources.begin(); it != sources.end(); ++it, ++filesCount) {
+
+		if (groupFiles) {
+
+			if (filesCount % maxGroupedFiles == 0) {
+
+				if (groupOutputFile.is_open()) {
+					groupOutputFile.close();
+					out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
+				}
+
+				groupFilename = trim(libName, ".", "/", true) + to_string(filesCount/maxGroupedFiles) + ".cpp";
+				groupFilename = buildDir + groupFilename;
+				//		cout << groupFilename << endl;
+				groupOutputFile.open(inputDir + groupFilename);
+			}
+			groupOutputFile << "#include \"" << *it << "\"" << endl;
+
+		} else {
+			out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
+		}
+		//		cout << *it << endl;
+	}
+
+	if (groupFiles) {
+
+		if (groupOutputFile.is_open()) {
+			groupOutputFile.close();
+			out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
+		}
+	}
+}
+
 myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
 string buildDir = "../../";
 myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework", "-isysroot"};
+myvector excludeGroupingLibs = {
+	"libcore",
+	"libdrivers",
+	"libfreetype_builtin",
+	//"libscene",
+	"libservers",
+	"libtool",
+};
 
 int main(int argc, char** argv) {
 
 	string inputFile;
 	string platform;
-	bool groupFiles;
+	bool groupFiles = false;
 	string dataFiles;
 
 	// Parse command-line arguments
@@ -572,10 +621,15 @@ int main(int argc, char** argv) {
 		out << endl;
 
 		// sources
-		for ( auto it = sources[*tit].begin(); it != sources[*tit].end(); ++it) {
 
-			out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
+		bool group = true;
+		for (auto libName = excludeGroupingLibs.begin(); libName != excludeGroupingLibs.end(); ++libName) {
+
+			if ((*tit).find(*libName)!=string::npos)
+				group = false;
 		}
+
+		addSources(sources[*tit], *tit, inputDir, buildDir, out, groupFiles && group);
 
 		out << endl;
 
@@ -673,11 +727,15 @@ int main(int argc, char** argv) {
 			out << endl;
 
 			// sources
-			for ( auto it = sources[*lit].begin(); it != sources[*lit].end(); ++it) {
 
-				//cout << *it << endl;
-				out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
+			bool group = true;
+			for (auto libName = excludeGroupingLibs.begin(); libName != excludeGroupingLibs.end(); ++libName) {
+
+				if ((*lit).find(*libName)!=string::npos)
+					group = false;
 			}
+
+			addSources(sources[*lit], *lit, inputDir, buildDir, out, groupFiles && group);
 
 			out << endl;
 
