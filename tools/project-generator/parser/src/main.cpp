@@ -260,47 +260,84 @@ void strReplace( string &s, const string &search, const string &replace )
 }
 
 void addSources(myset &sources, const string libName, const string inputDir, const string buildDir,ofstream &out, bool groupFiles = false) {
-	int filesCount = 0;
-	int groupCount = 0;
-	const int maxGroupedFiles = 40;
 
-	ofstream groupOutputFile;
-	string groupFilename;
-	groupFiles = groupFiles && sources.size() > maxGroupedFiles;
+	const myvector groupingTypes = {".cpp", ".c"};
 
-	for ( auto it = sources.begin(); it != sources.end(); ++it) {
+	int groupCount = 1;
+
+	// Files in groupingTypes
+
+	for (auto type = groupingTypes.begin(); type != groupingTypes.end(); ++type) {
+
+		int filesCount = 0;
+		const int maxGroupedFiles = 40;
+
+		ofstream groupOutputFile;
+		string groupFilename;
+		groupFiles = groupFiles && sources.size();
+
+		for ( auto it = sources.begin(); it != sources.end(); ++it) {
+
+			size_t pos = (*it).find(*type);
+
+			if (pos==string::npos || pos!=(*it).length()-(*type).length())
+				continue;
+
+			if (groupFiles) {
+
+				if (filesCount % maxGroupedFiles == 0) {
+
+					if (groupOutputFile.is_open()) {
+						groupOutputFile.close();
+						out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
+					}
+
+					groupFilename = trim(libName, ".", "/", true) + to_string(groupCount) + *type;
+					groupFilename = buildDir + groupFilename;
+					//		cout << groupFilename << endl;
+					groupOutputFile.open(inputDir + groupFilename);
+
+					groupCount++;
+				}
+
+				groupOutputFile << "#include \"" << *it << "\"" << endl;
+				filesCount++;
+
+			} else {
+				out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
+			}
+			//		cout << *it << endl;
+		}
 
 		if (groupFiles) {
 
-			if (filesCount % maxGroupedFiles == 0) {
-
-				if (groupOutputFile.is_open()) {
-					groupOutputFile.close();
-					out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
-				}
-
-				groupFilename = trim(libName, ".", "/", true) + to_string(groupCount) + ".cpp";
-				groupFilename = buildDir + groupFilename;
-				//		cout << groupFilename << endl;
-				groupOutputFile.open(inputDir + groupFilename);
-
-				groupCount++;
+			if (groupOutputFile.is_open()) {
+				groupOutputFile.close();
+				out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
 			}
-
-			groupOutputFile << "#include \"" << *it << "\"" << endl;
-			filesCount++;
-
-		} else {
-			out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
 		}
-		//		cout << *it << endl;
 	}
 
-	if (groupFiles) {
 
-		if (groupOutputFile.is_open()) {
-			groupOutputFile.close();
-			out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
+	// File types not in groupingTypes
+
+	for ( auto it = sources.begin(); it != sources.end(); ++it) {
+
+		bool addFile = true;
+
+		for (auto type = groupingTypes.begin(); type != groupingTypes.end(); ++type) {
+
+			size_t pos = (*it).find(*type);
+
+			if (pos!=string::npos && (pos==(*it).length()-(*type).length())) {
+				addFile = false;
+				break;
+			}
+		}
+
+		if (addFile) {
+			out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
+			//		cout << *it << endl;
 		}
 	}
 }
