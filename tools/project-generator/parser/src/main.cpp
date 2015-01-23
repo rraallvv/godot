@@ -261,13 +261,14 @@ void strReplace( string &s, const string &search, const string &replace )
 
 void addSources(myset &sources, const string libName, const string inputDir, const string buildDir,ofstream &out, bool groupFiles = false) {
 	int filesCount = 0;
+	int groupCount = 0;
 	const int maxGroupedFiles = 40;
 
 	ofstream groupOutputFile;
 	string groupFilename;
 	groupFiles = groupFiles && sources.size() > maxGroupedFiles;
 
-	for ( auto it = sources.begin(); it != sources.end(); ++it, ++filesCount) {
+	for ( auto it = sources.begin(); it != sources.end(); ++it) {
 
 		if (groupFiles) {
 
@@ -278,12 +279,16 @@ void addSources(myset &sources, const string libName, const string inputDir, con
 					out << "\t<source filename=\"" << groupFilename << "\" />" << endl;
 				}
 
-				groupFilename = trim(libName, ".", "/", true) + to_string(filesCount/maxGroupedFiles) + ".cpp";
+				groupFilename = trim(libName, ".", "/", true) + to_string(groupCount) + ".cpp";
 				groupFilename = buildDir + groupFilename;
 				//		cout << groupFilename << endl;
 				groupOutputFile.open(inputDir + groupFilename);
+
+				groupCount++;
 			}
+
 			groupOutputFile << "#include \"" << *it << "\"" << endl;
+			filesCount++;
 
 		} else {
 			out << "\t<source filename=\"" << buildDir << *it << "\" />" << endl;
@@ -305,11 +310,11 @@ string buildDir = "../../";
 myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework", "-isysroot"};
 myvector excludeGroupingLibs = {
 	"libcore",
-	"libdrivers",
+	//"libdrivers",
 	"libfreetype_builtin",
 	//"libscene",
-	"libservers",
-	"libtool",
+	//"libservers",
+	//"libtool",
 };
 
 int main(int argc, char** argv) {
