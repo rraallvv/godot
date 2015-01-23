@@ -36,6 +36,45 @@
 
 using namespace std;
 
+typedef vector<string> myvector;
+typedef set<string> myset;
+
+myvector supportedCompilers = {
+	"g++",
+	"gcc",
+	"clang",
+	"clang++",
+};
+
+string buildDir = "../../";
+
+myvector excludeFlags = {
+	"-c",
+	"-g3",
+	"-Wall",
+	"-arch",
+	"-l",
+	"-framework",
+	"-isysroot",
+};
+
+myvector excludeGroupingTargets = {
+	"godot",
+	"libmain",
+	"libmodules",
+	"libtests",
+	"libcore",
+	"libdrivers",
+	"libfreetype_builtin",
+	"libscene",
+	"libservers",
+	//"libtool",
+};
+
+myvector excludeGroupingFiles = {
+	"tools/docdump/doc_dump.cpp",
+};
+
 bool findGroupName(string prevLib, string lib, string &groupName, int &start) {
 	int end,n,m;
 	start=0;
@@ -91,9 +130,6 @@ string trim(string s, const string start, const string end, bool invert=false) {
 		s = invert ? s.substr( endpos+1 ) : s.substr( 0, endpos+1 );
 	return s;
 }
-
-typedef vector<string> myvector;
-typedef set<string> myset;
 
 bool getline(const string &str, string &sub, const myvector delimiters, size_t &from) {
 
@@ -283,7 +319,7 @@ void addSources(myset &sources, const string libName, const string inputDir, con
 			if (pos==string::npos || pos!=(*it).length()-(*type).length())
 				continue;
 
-			if (groupFiles) {
+			if (groupFiles && find(excludeGroupingFiles.begin(), excludeGroupingFiles.end(), *it) == excludeGroupingFiles.end()) {
 
 				if (filesCount % maxGroupedFiles == 0) {
 
@@ -341,18 +377,6 @@ void addSources(myset &sources, const string libName, const string inputDir, con
 		}
 	}
 }
-
-myvector supportedCompilers = {"g++", "gcc", "clang", "clang++"};
-string buildDir = "../../";
-myvector excludeFlags = {"-c", "-g3", "-Wall", "-arch", "-l", "-framework", "-isysroot"};
-myvector excludeGroupingLibs = {
-	"libcore",
-	//"libdrivers",
-	"libfreetype_builtin",
-	//"libscene",
-	//"libservers",
-	//"libtool",
-};
 
 int main(int argc, char** argv) {
 
@@ -665,7 +689,7 @@ int main(int argc, char** argv) {
 		// sources
 
 		bool group = true;
-		for (auto libName = excludeGroupingLibs.begin(); libName != excludeGroupingLibs.end(); ++libName) {
+		for (auto libName = excludeGroupingTargets.begin(); libName != excludeGroupingTargets.end(); ++libName) {
 
 			if ((*tit).find(*libName)!=string::npos)
 				group = false;
@@ -771,7 +795,7 @@ int main(int argc, char** argv) {
 			// sources
 
 			bool group = true;
-			for (auto libName = excludeGroupingLibs.begin(); libName != excludeGroupingLibs.end(); ++libName) {
+			for (auto libName = excludeGroupingTargets.begin(); libName != excludeGroupingTargets.end(); ++libName) {
 
 				if ((*lit).find(*libName)!=string::npos)
 					group = false;
