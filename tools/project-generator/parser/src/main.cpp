@@ -75,18 +75,24 @@ myvector excludeGroupingFiles = {
 	"core/io/config_file.cpp",
 	"core/io/resource_format_binary.cpp",
 	"core/io/resource_format_xml.cpp",
+	"drivers/builtin_openssl2/crypto/*",
+	"drivers/builtin_openssl2/ssl/*",
+	"drivers/builtin_zlib/zlib/adler32.c",
+	"drivers/builtin_zlib/zlib/crc32.c",
+	"drivers/builtin_zlib/zlib/deflate.c",
+	"drivers/builtin_zlib/zlib/infback.c",
+	"drivers/builtin_zlib/zlib/inffast.c",
+	"drivers/builtin_zlib/zlib/inflate.c",
+	"drivers/builtin_zlib/zlib/inftrees.c",
+	"drivers/builtin_zlib/zlib/trees.c",
+	"drivers/builtin_zlib/zlib/zutil.c",
 	"drivers/chibi/cp_player_data_notes.cpp",
 	"drivers/mpc/mpc_bits_reader.c",
 	"drivers/mpc/mpc_decoder.c",
 	"drivers/mpc/mpc_demux.c",
 	"drivers/mpc/streaminfo.c",
 	"drivers/png/resource_saver_png.cpp",
-	"drivers/speex/kiss_fftr.c",
-	"drivers/speex/modes_wb.c",
-	"drivers/speex/modes_wb.c",
-	"drivers/speex/modes.c",
-	"drivers/speex/nb_celp.c",
-	"drivers/speex/sb_celp.c",
+	"drivers/speex/*",
 	"drivers/squish/colourblock.cpp",
 	"drivers/squish/singlecolourfit.cpp",
 	"drivers/theora/huffdec.c",
@@ -98,6 +104,7 @@ myvector excludeGroupingFiles = {
 	"drivers/webp/dec/alpha.c",
 	"drivers/webp/dsp/enc_sse2.c",
 	"drivers/webp/dsp/enc.c",
+	"drivers/webp/dsp/yuv.c",
 	"drivers/webp/enc/alpha.c",
 	"drivers/webp/enc/analysis.c",
 	"drivers/webp/enc/cost.c",
@@ -116,39 +123,12 @@ myvector excludeGroupingFiles = {
 	"drivers/webp/mux/muxinternal.c",
 	"drivers/webp/mux/muxread.c",
 	"drivers/webp/utils/huffman_encode.c",
+	"platform/iphone/os_iphone.cpp",
 	"servers/physics_2d/collision_solver_2d_sat.cpp",
 	"servers/physics/joints/hinge_joint_sw.cpp",
 	"servers/physics/joints/slider_joint_sw.cpp",
 	"tools/docdump/doc_dump.cpp",
 	"tools/freetype/freetype/src/sfnt/sfnt.c",
-
-
-	"drivers/builtin_openssl2/crypto/rsa/rsa_ameth.c",
-	"drivers/builtin_openssl2/crypto/ec/ec2_oct.c",
-	"drivers/builtin_openssl2/crypto/ec/ec2_smpl.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_asn1.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_check.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_curve.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_cvt.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_key.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_lib.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_mult.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_oct.c",
-	"drivers/builtin_openssl2/crypto/ec/ec_print.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_mont.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_nist.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_nistp256.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_nistp521.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_nistputil.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_oct.c",
-	"drivers/builtin_openssl2/crypto/ec/ecp_smpl.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_asnmth.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_dsa.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_ecdh.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_ecdsa.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_rand.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_rsa.c",
-	"drivers/builtin_openssl2/crypto/engine/tb_store.c",
 };
 
 bool findGroupName(string prevLib, string lib, string &groupName, int &start) {
@@ -395,7 +375,24 @@ void addSources(myset &sources, const string libName, const string inputDir, con
 			if (pos==string::npos || pos!=(*it).length()-(*type).length())
 				continue;
 
-			if (groupFiles && find(excludeGroupingFiles.begin(), excludeGroupingFiles.end(), *it) == excludeGroupingFiles.end()) {
+			bool include = true;
+
+			for (auto excludeFile = excludeGroupingFiles.begin(); excludeFile != excludeGroupingFiles.end(); ++excludeFile) {
+				size_t startPos = (*excludeFile).find_first_of("*");
+				if (startPos==string::npos) {
+					if ((*it).compare(*excludeFile) == 0) {
+						include = false;
+						break;
+					}
+				} else {
+					if ((*it).find((*excludeFile).substr(0, startPos-1)) == 0) {
+						include = false;
+						break;
+					}
+				}
+			}
+
+			if (groupFiles && include) {
 
 				if (filesCount % maxGroupedFiles == 0) {
 
