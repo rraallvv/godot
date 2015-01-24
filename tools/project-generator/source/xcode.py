@@ -218,7 +218,9 @@ class PBXGroup(XcodeProjectObject):
 	def append_child(self, child):
 		self.children.append(child)
 		order = { "PBXGroup": 0, "PBXFileReference": 1 }
-		self.children.sort(key=lambda children: (order[children.__class__.__name__], children.name), reverse=False)
+		convert = lambda text: int(text) if text.isdigit() else text.lower()
+		alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+		self.children.sort(key=lambda children: (order[children.__class__.__name__], alphanum_key(children.name)), reverse=False)
 
 	def find(self, name):
 		for group in self.children:
