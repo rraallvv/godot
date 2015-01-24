@@ -541,10 +541,18 @@ class XcodeObjects(XcodeProjectSectionObject):
 		all_framework_like_files = framework_build_files + dylib_build_files + library_build_files
 
 		self.frameworks_build_phase = object_factory.create(PBXFrameworksBuildPhase, all_framework_like_files)
+
 		source_build_files = self.all_source_build_files(project)
+		source_build_files.sort(key=lambda source_build_files: source_build_files.fileRef.path, reverse=False)
 		self.sources_build_phase = object_factory.create(PBXSourcesBuildPhase, source_build_files)
-		self.headers_build_phase = object_factory.create(PBXHeadersBuildPhase, self.all_header_build_files(project))
-		self.resources_build_phase = object_factory.create(PBXResourcesBuildPhase, self.all_resource_build_files(project))
+
+		header_build_files = self.all_header_build_files(project)
+		header_build_files.sort(key=lambda header_build_files: header_build_files.fileRef.path, reverse=False)
+		self.headers_build_phase = object_factory.create(PBXHeadersBuildPhase, header_build_files)
+
+		resource_build_files = self.all_resource_build_files(project)
+		resource_build_files.sort(key=lambda resource_build_files: resource_build_files.fileRef.path, reverse=False)
+		self.resources_build_phase = object_factory.create(PBXResourcesBuildPhase, resource_build_files)
 
 		self.groups = default_groups.flatten_groups()
 
@@ -903,7 +911,6 @@ class XcodeObjects(XcodeProjectSectionObject):
 		filename_reference = self.create_file_reference(object_factory, parent_group, filename)
 		build_file = object_factory.create(PBXBuildFile, filename_reference)
 		self.build_files.append(build_file)
-
 		return build_file
 
 	def generate_build_files(self, source_root, source_filenames, extensions, object_factory, root_group):
