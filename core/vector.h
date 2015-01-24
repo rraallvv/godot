@@ -39,6 +39,12 @@
 #include "safe_refcount.h"
 #include "sort.h"
 
+#if DEFAULT_ALIGNMENT == 1
+#define VECTOR_DATA_OFFSET	(sizeof(SafeRefCount)+sizeof(int))
+#else
+#define VECTOR_DATA_OFFSET	(((sizeof(SafeRefCount)+sizeof(int))/DEFAULT_ALIGNMENT + 1) * DEFAULT_ALIGNMENT)
+#endif
+
 template<class T>
 class Vector {
 
@@ -65,13 +71,13 @@ class Vector {
  	
 		if (!_ptr)
  			return NULL;
-		return reinterpret_cast<T*>(((uint8_t*)(_ptr))+sizeof(SafeRefCount)+sizeof(int));
+		return reinterpret_cast<T*>(((uint8_t*)(_ptr))+VECTOR_DATA_OFFSET);
  		
  	}
  	
 	_FORCE_INLINE_ int _get_alloc_size(int p_elements) const {
- 	
- 		return  nearest_power_of_2(p_elements*sizeof(T)+sizeof(SafeRefCount)+sizeof(int));
+
+		return  nearest_power_of_2(p_elements*sizeof(T)+VECTOR_DATA_OFFSET);
  	}
  	
 	void _unref(void *p_data);
@@ -172,7 +178,7 @@ void Vector<T>::_unref(void *p_data) {
 	// clean up
 		
 	int *count = (int*)(src+1);
-	T *data = (T*)(count+1);
+	T *data = (T*)((uint8_t*)(src)+VECTOR_DATA_OFFSET);
 	
 	for (int i=0;i<*count;i++) {
 		// call destructors	
@@ -197,7 +203,7 @@ void Vector<T>::_copy_on_write() {
 		int * _size = (int*)(src_new+1);
 		*_size=*_get_size();
 		
-		T*_data=(T*)(_size+1);
+		T*_data=(T*)((uint8_t*)(src_new)+VECTOR_DATA_OFFSET);
 		
 		// initialize new elements
 		for (int i=0;i<*_size;i++) {

@@ -34,6 +34,41 @@
 #include "math_funcs.h"
 #include "ustring.h"
 
+#if (defined (__APPLE__) && (!defined (REAL_T_IS_DOUBLE)))
+	#if defined (__i386__) || defined (__x86_64__)
+		#ifndef USE_SSE
+			#define USE_SSE
+		#endif
+	#elif defined (__ARM_NEON__)
+		#ifdef __clang__
+			#ifndef USE_NEON
+				#define USE_NEON
+			#endif
+		#endif
+	#endif
+#endif
+
+#if defined (USE_SSE) || defined (USE_NEON)
+	#ifndef USE_SIMD
+		#define USE_SIMD
+	#endif
+#endif
+
+#if defined (USE_SSE)
+	#if defined (__SSE4_1__)
+		#include <smmintrin.h>
+	#elif defined (__SSSE3__)
+		#include <tmmintrin.h>
+	#elif defined (__SSE3__)
+		#include <pmmintrin.h>
+	#else
+		#include <emmintrin.h>
+	#endif
+	typedef __m128		SimdFloat4;
+#elif defined (USE_NEON)
+	#include <arm_neon.h>
+	typedef float32x4_t	SimdFloat4;
+#endif
 
 struct Vector3 {
 
@@ -44,8 +79,6 @@ struct Vector3 {
 	};
 
 	union {
-	
-#ifdef USE_QUAD_VECTORS
 
 		struct {
 			real_t x;
@@ -54,17 +87,18 @@ struct Vector3 {
 			real_t _unused;
 		};		
 		real_t coord[4];
-#else
-
-		struct {
-			real_t x;
-			real_t y;
-			real_t z;
-		};
-		
-		real_t coord[3];
+#ifdef USE_SIMD
+		SimdFloat4 vec128;
 #endif
 	};
+
+#ifdef USE_SIMD
+	_FORCE_INLINE_ Vector3& operator=(const Vector3& p_v) {
+
+		vec128 = p_v.vec128;
+		return *this;
+	}
+#endif
 
 	_FORCE_INLINE_ const real_t& operator[](int p_axis) const {
 	
