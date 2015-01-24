@@ -460,10 +460,12 @@ int main(int argc, char** argv) {
 	string platform;
 	bool groupFiles = false;
 	string dataFiles;
+	string resourceFiles;
 
 	// Parse command-line arguments
 
 	for (int i=1; i<argc; ++i) {
+
 		string arg = argv[i];
 
 		if (arg.find("i=")==0)
@@ -477,6 +479,9 @@ int main(int argc, char** argv) {
 
 		else if (arg.find("d=")==0)
 			dataFiles = arg.substr(2, arg.length()-2);
+
+		else if (arg.find("r=")==0)
+			resourceFiles = arg.substr(2, arg.length()-2);
 	}
 
 	if (!inputFile.length() || !platform.length()) {
@@ -903,7 +908,13 @@ int main(int argc, char** argv) {
 
 	cout << "running project generator script for '" << targetName << ".xml'" << endl;
 
-	string cmd = "cd "+ inputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName + " -d " + dataFiles;
+	string cmd = "cd "+ inputDir + " && " + "source/generate.py -i " + targetName + ".xml -p " + platform + " -g xcode -n " + targetName;
+
+	if (!dataFiles.empty())
+		cmd += " -d " + dataFiles;
+
+	if (!resourceFiles.empty())
+		cmd += " -r " + resourceFiles;
 
 	cout << cmd << endl;
 
