@@ -122,18 +122,9 @@ public:
 
 	_FORCE_INLINE_ void set(real_t xx, real_t xy, real_t xz, real_t yx, real_t yy, real_t yz, real_t zx, real_t zy, real_t zz) {
 	
-		elements[0][0]=xx;
-		elements[0][1]=xy;
-		elements[0][2]=xz;
-		elements[0][3]=0;
-		elements[1][0]=yx;
-		elements[1][1]=yy;
-		elements[1][2]=yz;
-		elements[1][3]=0;
-		elements[2][0]=zx;
-		elements[2][1]=zy;
-		elements[2][2]=zz;	
-		elements[2][3]=0;
+		elements[0].set(xx,xy,xz);
+		elements[1].set(yx,yy,yz);
+		elements[2].set(zx,zy,zz);
 	}
 	_FORCE_INLINE_ Vector3 get_column(int i) const {
 			

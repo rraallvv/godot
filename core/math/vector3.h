@@ -162,6 +162,7 @@ struct Vector3 {
 
        _FORCE_INLINE_ Vector3() { zero(); }
         _FORCE_INLINE_ Vector3(real_t p_x,real_t p_y,real_t p_z) { x=p_x; y=p_y; z=p_z; _unused=real_t(0.f); }
+		_FORCE_INLINE_ void set(real_t p_x,real_t p_y,real_t p_z) { x=p_x; y=p_y; z=p_z; _unused=real_t(0.f); }
 
 };
 

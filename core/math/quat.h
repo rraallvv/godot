@@ -111,7 +111,7 @@ public:
 	
 	operator String() const;
 	
-	inline void set( real_t p_x, real_t p_y, real_t p_z, real_t p_w) {
+	_FORCE_INLINE_ void set( real_t p_x, real_t p_y, real_t p_z, real_t p_w) {
 		x=p_x; y=p_y; z=p_z; w=p_w;	
 	}
 	inline Quat(real_t p_x, real_t p_y, real_t p_z, real_t p_w) {

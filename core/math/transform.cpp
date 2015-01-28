@@ -157,9 +157,7 @@ void Transform::translate( real_t p_tx, real_t p_ty, real_t p_tz)  {
 }
 void Transform::translate( const Vector3& p_translation ) {
 
-	for( int i = 0; i < 3; i++ ) {
-		origin[i] += basis[i].dot(p_translation);
-	}
+	origin += basis.xform(p_translation);
 }
 
 Transform Transform::translated( const Vector3& p_translation ) const {

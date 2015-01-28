@@ -95,20 +95,10 @@ public:
 			basis.xform(v));
 	}
 	
-	void set(real_t xx, real_t xy, real_t xz, real_t yx, real_t yy, real_t yz, real_t zx, real_t zy, real_t zz,real_t tx, real_t ty, real_t tz) {
+	_FORCE_INLINE_ void set(real_t xx, real_t xy, real_t xz, real_t yx, real_t yy, real_t yz, real_t zx, real_t zy, real_t zz,real_t tx, real_t ty, real_t tz) {
 	
-		basis.elements[0][0]=xx;
-		basis.elements[0][1]=xy;
-		basis.elements[0][2]=xz;
-		basis.elements[1][0]=yx;
-		basis.elements[1][1]=yy;
-		basis.elements[1][2]=yz;
-		basis.elements[2][0]=zx;
-		basis.elements[2][1]=zy;
-		basis.elements[2][2]=zz;	
-		origin.x=tx;
-		origin.y=ty;
-		origin.z=tz;
+		basis.set(xx,xy,xz,yx,yy,yz,zx,zy,zz);
+		origin.set(tx,ty,tz);
 	}
 	
 	operator String() const;
@@ -121,21 +111,11 @@ public:
 
 _FORCE_INLINE_ Vector3 Transform::xform(const Vector3& p_vector) const {
 
-	return Vector3(
-		basis[0].dot(p_vector)+origin.x,
-		basis[1].dot(p_vector)+origin.y,
-		basis[2].dot(p_vector)+origin.z
-	);
+	return basis.xform(p_vector)+origin;
 }
 _FORCE_INLINE_ Vector3 Transform::xform_inv(const Vector3& p_vector) const {
-	
-	Vector3 v = p_vector - origin;
-	
-	return Vector3(
-		(basis.elements[0][0]*v.x ) + ( basis.elements[1][0]*v.y ) + ( basis.elements[2][0]*v.z ),
-		(basis.elements[0][1]*v.x ) + ( basis.elements[1][1]*v.y ) + ( basis.elements[2][1]*v.z ),
-		(basis.elements[0][2]*v.x ) + ( basis.elements[1][2]*v.y ) + ( basis.elements[2][2]*v.z )
-	);
+
+	return basis.xform_inv(p_vector-origin);
 }
 
 _FORCE_INLINE_ Plane Transform::xform(const Plane& p_plane) const {
