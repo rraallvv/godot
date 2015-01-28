@@ -67,7 +67,8 @@ struct CameraMatrix {
 	float get_z_near() const;
 	float get_aspect() const;
 	float get_fov() const;
-	
+	_FORCE_INLINE_ void get_matrix(float *p_matrix) const;
+
 	Vector<Plane> get_projection_planes(const Transform& p_transform) const;
 	
 	bool get_endpoints(const Transform& p_transform,Vector3 *p_8points) const;
@@ -92,6 +93,15 @@ struct CameraMatrix {
 	~CameraMatrix();
 
 };
+
+void CameraMatrix::get_matrix(float *p_matrix) const {
+		for (int i=0;i<4;i++) {
+			for (int j=0;j<4;j++) {
+		
+				p_matrix[i*4+j]=matrix[i][j];
+			}	
+		}
+}
 
 Vector3 CameraMatrix::xform(const Vector3& p_vec3) const {
 

@@ -318,12 +318,7 @@ def build_glsl_header( filename ):
 	
 		GLfloat matrix[16];
 	
-		for (int i=0;i<4;i++) {
-			for (int j=0;j<4;j++) {
-		
-				matrix[i*4+j]=p_matrix.matrix[i][j];
-			}	
-		}
+		p_matrix.get_matrix(matrix);
 	
 		glUniformMatrix4fv(get_uniform(p_uniform),1,false,matrix);
 	}; """);
@@ -922,12 +917,7 @@ def build_legacygl_header( filename, include, class_suffix, output_attribs ):
 
 		GLfloat matrix[16];
 
-		for (int i=0;i<4;i++) {
-			for (int j=0;j<4;j++) {
-
-				matrix[i*4+j]=p_matrix.matrix[i][j];
-			}
-		}
+		p_matrix.get_matrix(matrix);
 
 		glUniformMatrix4fv(get_uniform(p_uniform),1,false,matrix);
 	}; """);
