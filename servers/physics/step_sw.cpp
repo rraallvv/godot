@@ -59,9 +59,17 @@ void StepSW::_populate_island(BodySW* p_body,BodySW** p_island,ConstraintSW **p_
 void StepSW::_setup_island(ConstraintSW *p_island,float p_delta) {
 
 	ConstraintSW *ci=p_island;
+	ConstraintSW *prev=NULL;
+
 	while(ci) {
 		bool process = ci->setup(p_delta);
-		//todo remove from island if process fails
+
+		if (!process && prev) {
+			prev->set_island_next(ci->get_island_next());
+		} else {
+			prev=ci;
+		}
+
 		ci=ci->get_island_next();
 	}
 }
