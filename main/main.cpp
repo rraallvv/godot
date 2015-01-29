@@ -975,7 +975,7 @@ bool Main::start() {
 
 #endif
 
-	if(script=="" && game_path=="" && !editor && String(GLOBAL_DEF("application/main_scene",""))!="") {
+	if(script=="" && game_path=="" /*&& !editor*/ && String(GLOBAL_DEF("application/main_scene",""))!="") {
 		game_path=GLOBAL_DEF("application/main_scene","");
 	}
 
