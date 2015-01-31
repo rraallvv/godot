@@ -31,6 +31,27 @@
 
 
 #include "servers/physics_server.h"
+#include "bullet_body_sw.h"
+#include "bullet/btBulletDynamicsCommon.h"
+
+
+class BulletSpaceSW {
+	RID self;
+public:
+	btDiscreteDynamicsWorld *discreteDynamicsWorld;
+	btCollisionDispatcher *collisionDispatcher;
+	btDefaultCollisionConfiguration *collisionConfig;
+	btSequentialImpulseConstraintSolver *constraintSolver;
+	btDbvtBroadphase *broadphase;
+};
+
+
+class BulletShapeSW {
+	RID self;
+public:
+	PhysicsServer::ShapeType type;
+	btCollisionShape *shape;
+};
 
 
 class BulletServerSW : public PhysicsServer {
@@ -46,6 +67,12 @@ friend class PhysicsDirectSpaceStateSW;
 	int island_count;
 	int active_objects;
 	int collision_pairs;
+
+	Set<const BulletSpaceSW*> active_spaces;
+	
+	mutable RID_Owner<BulletShapeSW> shape_owner;
+	mutable RID_Owner<BulletBodySW> body_owner;
+	mutable RID_Owner<BulletSpaceSW> space_owner;
 
 //	void _clear_query(QuerySW *p_query);
 public:

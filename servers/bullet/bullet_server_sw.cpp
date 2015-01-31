@@ -29,6 +29,16 @@
 #include "bullet_server_sw.h"
 
 
+class btPlaneShape : public btStaticPlaneShape {
+public:
+	void setImplicitShapeDimensions(const btVector3& planeNormal,btScalar planeConstant) {
+		m_planeNormal = planeNormal;
+		m_planeConstant = planeConstant;
+	}
+	btPlaneShape(const btVector3& planeNormal,btScalar planeConstant) : btStaticPlaneShape(planeNormal, planeConstant) {}
+};
+
+
 #pragma mark - Shape API
 
 /* SHAPE API */
@@ -38,11 +48,58 @@
 RID BulletServerSW::shape_create(ShapeType p_shape) {
 
 	printf(">>>creating shape type %d\n", p_shape);
-	return RID();
+	
+	btCollisionShape* btShape = NULL;
+	
+	switch (p_shape) {
+		case SHAPE_PLANE:
+			btShape = new btPlaneShape(btVector3(1.0f, 1.0f, 1.0f), btScalar(0.0f));
+			break;
+			
+		case SHAPE_BOX:
+			btShape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f));
+			break;
+			
+		default:
+			ERR_FAIL_V(RID());
+			break;
+	}
+	
+	BulletShapeSW *shape = memnew( BulletShapeSW );
+	shape->shape = btShape;
+	shape->type = p_shape;
+	
+	return shape_owner.make_rid(shape);
 }
 
 void BulletServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
 	
+	BulletShapeSW *shape = shape_owner.get(p_shape);
+
+	ERR_FAIL_COND(!shape);
+
+	printf(">>>setting shape data for type %d (%p)\n", shape->type, shape);
+
+	switch (shape->type) {
+		case SHAPE_PLANE: {
+			btPlaneShape *btShape = (btPlaneShape *)shape->shape;
+			Plane planeData = p_data;
+			Vector3 planeNormal = planeData.normal;
+			real_t planeConstant = planeData.d;
+			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
+		}
+			break;
+			
+		case SHAPE_BOX: {
+			btBoxShape *btShape = (btBoxShape *)shape->shape;
+			Vector3 halfExtents = p_data;
+			btShape->setImplicitShapeDimensions(btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
+		}
+			break;
+			
+		default:
+			break;
+	}
 }
 
 void BulletServerSW::shape_set_custom_solver_bias(RID p_shape, real_t p_bias) {
@@ -75,16 +132,36 @@ real_t BulletServerSW::shape_get_custom_solver_bias(RID p_shape) const {
 RID BulletServerSW::space_create() {
 
 	printf(">>>creating space\n");
-	return RID();
+	
+	BulletSpaceSW *space = memnew( BulletSpaceSW );
+	
+	space->broadphase = new btDbvtBroadphase();
+	space->constraintSolver = new btSequentialImpulseConstraintSolver;
+	space->collisionConfig = new btDefaultCollisionConfiguration();
+	space->collisionDispatcher = new btCollisionDispatcher(space->collisionConfig);
+	space->discreteDynamicsWorld = new btDiscreteDynamicsWorld(space->collisionDispatcher, space->broadphase, space->constraintSolver, space->collisionConfig);
+	
+	space->discreteDynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
+	
+	return space_owner.make_rid(space);
 }
 
 void BulletServerSW::space_set_active(RID p_space,bool p_active) {
 
+	BulletSpaceSW *space = space_owner.get(p_space);
+	ERR_FAIL_COND(!space);
+	if (p_active)
+		active_spaces.insert(space);
+	else
+		active_spaces.erase(space);
 }
 
 bool BulletServerSW::space_is_active(RID p_space) const {
 
-	return false;
+	const BulletSpaceSW *space = space_owner.get(p_space);
+	ERR_FAIL_COND_V(!space,false);
+
+	return active_spaces.has(space);
 }
 
 void BulletServerSW::space_set_param(RID p_space,SpaceParameter p_param, real_t p_value) {
@@ -219,11 +296,55 @@ bool BulletServerSW::area_is_ray_pickable(RID p_area) const{
 RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 
 	printf(">>>creating body mode %d\n", p_mode);
-	return RID();
+
+	btScalar mass(0.0f);
+
+	if (p_mode == BODY_MODE_RIGID)
+		mass = btScalar(0.01f);
+	btVector3 localInertia(0.0f, 0.0f, 0.0f);
+	
+	
+	btCompoundShape* btShape = new btCompoundShape;
+	btShape->calculateLocalInertia(mass,localInertia);
+	
+	BulletShapeSW *shape = memnew( BulletShapeSW );
+	shape->shape = btShape;
+	shape->type = SHAPE_CUSTOM;
+	
+	shape_owner.make_rid(shape);
+	
+	
+	btTransform transform = btTransform::getIdentity();
+	
+	btDefaultMotionState *motionState = new btDefaultMotionState(transform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,motionState,btShape,localInertia);
+	
+	btRigidBody* btBody = new btRigidBody(rbInfo);
+	
+	BulletBodySW *body = memnew( BulletBodySW );
+	body->body = btBody;
+	body->mode = p_mode;
+
+	return body_owner.make_rid(body);
 }
 
 void BulletServerSW::body_set_space(RID p_body, RID p_space) {
+	
+	printf(">>>setting body space\n");
+	
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+	BulletSpaceSW *space=NULL;
+	
+	if (p_space.is_valid()) {
+		space = space_owner.get(p_space);
+		ERR_FAIL_COND(!space);
+	}
 
+	if (body->get_space()==space)
+		return; //pointles
+	
+	body->set_space(space);
 }
 
 RID BulletServerSW::body_get_space(RID p_body) const {
@@ -242,6 +363,15 @@ PhysicsServer::BodyMode BulletServerSW::body_get_mode(RID p_body, BodyMode p_mod
 
 void BulletServerSW::body_add_shape(RID p_body, RID p_shape, const Transform& p_transform) {
 
+	printf(">>>adding body shape\n");
+
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	BulletShapeSW *shape = shape_owner.get(p_shape);
+	ERR_FAIL_COND(!shape);
+
+	body->add_shape(shape,p_transform);
 }
 
 void BulletServerSW::body_set_shape(RID p_body, int p_shape_idx,RID p_shape) {
@@ -323,6 +453,12 @@ uint32_t BulletServerSW::body_get_user_flags(RID p_body, uint32_t p_flags) const
 
 void BulletServerSW::body_set_param(RID p_body, BodyParameter p_param, float p_value) {
 
+	printf(">>>setting body parameter\n");
+
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	body->set_param(p_param,p_value);
 }
 
 float BulletServerSW::body_get_param(RID p_body, BodyParameter p_param) const {
@@ -332,15 +468,22 @@ float BulletServerSW::body_get_param(RID p_body, BodyParameter p_param) const {
 
 void BulletServerSW::body_set_state(RID p_body, BodyState p_state, const Variant& p_variant) {
 
+	printf(">>>setting body state\n");
+
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	body->set_state(p_state,p_variant);
 }
 
 Variant BulletServerSW::body_get_state(RID p_body, BodyState p_state) const {
 
-	if (p_state == PhysicsServer::BODY_STATE_TRANSFORM) {
-		return Transform();
-	}
+	//printf(">>>getting body state\n");
 
-	return Variant();
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body,Variant());
+
+	return body->get_state(p_state);
 }
 
 void BulletServerSW::body_set_applied_force(RID p_body, const Vector3& p_force) {
@@ -643,6 +786,27 @@ void BulletServerSW::init() {
 
 void BulletServerSW::step(float p_step) {
 
+
+	if (!active)
+		return;
+
+
+	doing_sync=false;
+
+	last_step=p_step;
+
+	island_count=0;
+	active_objects=0;
+	collision_pairs=0;
+	for( Set<const BulletSpaceSW*>::Element *E=active_spaces.front();E;E=E->next()) {
+
+		BulletSpaceSW *space = (BulletSpaceSW*)E->get();
+		space->discreteDynamicsWorld->stepSimulation(1.f/60, 0);
+		//island_count+=E->get()->get_island_count();
+		//active_objects+=E->get()->get_active_objects();
+		//collision_pairs+=E->get()->get_collision_pairs();
+	}
+	
 }
 
 void BulletServerSW::sync() {
