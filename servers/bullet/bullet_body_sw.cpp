@@ -44,8 +44,6 @@ void BulletBodySW::_set_transform(const Transform& p_transform) {
 
 Transform BulletBodySW::_get_transform() const {
 
-	((btRigidBody *)body)->setLinearVelocity(btVector3(0,1,0));
-
 	btTransform bodyTransform = body->getWorldTransform();
 
 	btVector3 origin = bodyTransform.getOrigin();
@@ -70,17 +68,29 @@ BulletSpaceSW *BulletBodySW::get_space() {
 void BulletBodySW::set_space(BulletSpaceSW *p_space) {
 	if (p_space==space)
 		return;
-	if (space)
-		space->discreteDynamicsWorld->removeCollisionObject(body);
-	if (p_space)
-		p_space->discreteDynamicsWorld->addCollisionObject(body);
+	if (mode == BulletServerSW::BODY_MODE_RIGID) {
+		if (space)
+			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
+		if (p_space)
+			p_space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+	} else {
+		if (space)
+			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
+		if (p_space)
+			p_space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+	}
 	space=p_space;
 }
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {
 
-	if (space)
-		space->discreteDynamicsWorld->removeCollisionObject(body);
+	if (space) {
+		if (mode == BulletServerSW::BODY_MODE_RIGID) {
+			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
+		} else {
+			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
+		}
+	}
 
 	Vector3 origin = p_transform.get_origin();
 	Matrix3 basis = p_transform.get_basis();
@@ -94,18 +104,19 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
 	shape->addChildShape(transform, p_shape->shape);
 
-	if (mode==BulletServerSW::BODY_MODE_RIGID) {
-		btScalar mass = btScalar(0.01f);
+	if (space) {
+		if (mode==BulletServerSW::BODY_MODE_RIGID) {
+			btScalar mass = btScalar(0.01f);
 
-		btVector3 inertia;
-		shape->calculateLocalInertia(mass,inertia);
-		((btRigidBody *)body)->setMassProps(mass, inertia);
+			btVector3 inertia;
+			shape->calculateLocalInertia(mass,inertia);
+			((btRigidBody *)body)->setMassProps(mass, inertia);
 
-		//printf(">>>%d\n", body->isStaticObject());
+			space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+		} else {
+			space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+		}
 	}
-
-	if (space)
-		space->discreteDynamicsWorld->addCollisionObject(body);
 }
 
 void BulletBodySW::set_state(PhysicsServer::BodyState p_state, const Variant& p_variant) {
@@ -120,7 +131,7 @@ void BulletBodySW::set_param(PhysicsServer::BodyParameter p_param, float p_value
 	switch(p_param) {
 		case PhysicsServer::BODY_PARAM_BOUNCE: {
 
-			body->setRestitution(btScalar(p_value));
+			body->setRestitution(btScalar(1.f));
 		} break;
 		case PhysicsServer::BODY_PARAM_FRICTION: {
 
