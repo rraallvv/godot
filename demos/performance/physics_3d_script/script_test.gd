@@ -1,65 +1,52 @@
-
 extends Spatial
 
-# This demo is an example of controling a high number of 2D objects with logic and collision without using scene nodes.
-# This technique is a lot more efficient than using instancing and nodes, but requires more programming and is less visual
+# This demo is an example of creating 3d body physics in GDScript.
 
-const BULLET_COUNT = 10
-const SPEED_MIN = 1.0
-const SPEED_MAX = 10.0
-const width = 10
+const CUBE_COUNT = 10
+const WIDTH = 10
+const RESTITUTION = 1.0
 	
-var bullets=[]
 var cubes=[]
 var shape
 
-class Bullet:
+class Cube:
 	extends TestCube
-	var pos = Vector3()
-	var speed = 1.0
 	var body = RID()
 
 
 func _process(delta):
-	for i in range(BULLET_COUNT):
-		var b = bullets[i]
-		var trans = PhysicsServer.body_get_state(b.body,PhysicsServer.BODY_STATE_TRANSFORM)
-		b.set_transform(trans)
+	for cube in cubes:
+		var trans = PhysicsServer.body_get_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM)
+		cube.set_transform(trans)
 
 
 func _ready():
-
-	shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_SPHERE)
-	PhysicsServer.shape_set_data(shape,1.0) #radius
+	shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_BOX)
+	PhysicsServer.shape_set_data(shape,Vector3(1,1,1)) # half extents
 	
-	for i in range(BULLET_COUNT):
-		var b = Bullet.new()
-		b.speed=rand_range(SPEED_MIN,SPEED_MAX)
-		b.body = PhysicsServer.body_create(PhysicsServer.BODY_MODE_RIGID)
-		PhysicsServer.body_set_space(b.body,get_world().get_space())
-		PhysicsServer.body_add_shape(b.body,shape)
+	for i in range(CUBE_COUNT):
+		var cube = Cube.new()
+		cube.body = PhysicsServer.body_create(PhysicsServer.BODY_MODE_RIGID)
+		PhysicsServer.body_set_space(cube.body,get_world().get_space())
+		PhysicsServer.body_add_shape(cube.body,shape)
 		
 		var trans = Transform()
-		trans.origin=Vector3(rand_range(-width,width),10,rand_range(-width,width))
+		trans.origin=Vector3(rand_range(-WIDTH,WIDTH),rand_range(5,10),rand_range(-WIDTH,WIDTH))
 		
-		b.set_transform(trans)
-		PhysicsServer.body_set_state(b.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
-		PhysicsServer.body_set_param(b.body,PhysicsServer.BODY_PARAM_BOUNCE,1.0)
+		cube.set_transform(trans)
+		PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
+		PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,RESTITUTION)
 		
-		bullets.append(b)
-		add_child(b)
+		cubes.append(cube)
+		add_child(cube)
 		
 	set_process(true)
 
 
 func _exit_tree():
-	for b in bullets:
-		PhysicsServer.free_rid(b.body)
+	for cube in cubes:
+		PhysicsServer.free_rid(cube.body)
 	
 	PhysicsServer.free_rid(shape)
-
-	bullets.clear()
+	
 	cubes.clear()
-	
-	pass
-	
