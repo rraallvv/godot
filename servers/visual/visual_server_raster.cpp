@@ -6733,6 +6733,8 @@ void VisualServerRaster::_clean_up_owner(RID_OwnerBase *p_owner,String p_type) {
 
 void VisualServerRaster::finish() {
 
+	if (test_cube.is_valid())
+		free(test_cube);
 
 	free(default_cursor_texture);
 

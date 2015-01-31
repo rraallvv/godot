@@ -50,8 +50,6 @@ TestCube::TestCube() {
 
 TestCube::~TestCube() {
 
-	if (instance.is_valid())
-		VisualServer::get_singleton()->free(instance);
 }
 
 
