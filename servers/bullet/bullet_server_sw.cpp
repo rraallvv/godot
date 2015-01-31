@@ -64,6 +64,14 @@ real_t BulletServerSW::shape_get_custom_solver_bias(RID p_shape) const {
 	return 0;
 }
 
+
+
+#pragma mark - Space API
+
+/* SPACE API */
+
+
+
 RID BulletServerSW::space_create() {
 
 	printf(">>>creating space\n");
@@ -613,11 +621,6 @@ void BulletServerSW::damped_string_joint_set_param(RID p_joint, DampedStringPara
 real_t BulletServerSW::damped_string_joint_get_param(RID p_joint, DampedStringParam p_param) const {
 
 	return 0;
-}
-
-PhysicsServer::JointType BulletServerSW::joint_get_type(RID p_joint) const {
-
-	return JOINT_PIN;
 }
 
 #endif

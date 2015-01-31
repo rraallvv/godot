@@ -34,6 +34,8 @@
 #include <IOKit/hid/IOHIDLib.h>
 #include <IOKit/hid/IOHIDKeys.h>
 
+#define USE_BULLET_SERVER
+
 #include "sem_osx.h"
 #include "servers/visual/visual_server_raster.h"
 //#include "drivers/opengl/rasterizer_gl.h"
@@ -42,8 +44,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "print_string.h"
-//#include "servers/bullet/bullet_server_sw.h"
-#include "servers/physics/physics_server_sw.h"
+
+#ifdef USE_BULLET_SERVER
+	#include "servers/bullet/bullet_server_sw.h"
+#else
+	#include "servers/physics/physics_server_sw.h"
+#endif
+
 #include "drivers/gles2/rasterizer_instance_gles2.h"
 #include "servers/visual/visual_server_wrap_mt.h"
 #include "main/main.h"
@@ -1007,8 +1014,11 @@ void OS_OSX::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 	spatial_sound_2d_server->init();
 
 	//
-	//physics_server = memnew( BulletServerSW );
+#ifdef USE_BULLET_SERVER
+	physics_server = memnew( BulletServerSW );
+#else
 	physics_server = memnew( PhysicsServerSW );
+#endif
 	physics_server->init();
 	physics_2d_server = memnew( Physics2DServerSW );
 	physics_2d_server->init();
