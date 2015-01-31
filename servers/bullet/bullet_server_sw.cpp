@@ -29,8 +29,15 @@
 #include "bullet_server_sw.h"
 
 
+#pragma mark - Shape API
+
+/* SHAPE API */
+
+
+
 RID BulletServerSW::shape_create(ShapeType p_shape) {
 
+	printf(">>>creating shape type %d\n", p_shape);
 	return RID();
 }
 
@@ -59,6 +66,7 @@ real_t BulletServerSW::shape_get_custom_solver_bias(RID p_shape) const {
 
 RID BulletServerSW::space_create() {
 
+	printf(">>>creating space\n");
 	return RID();
 }
 
@@ -84,6 +92,14 @@ PhysicsDirectSpaceState* BulletServerSW::space_get_direct_state(RID p_space) {
 
 	return NULL;
 }
+
+
+
+#pragma mark - Area API
+
+/* AREA API */
+
+
 
 RID BulletServerSW::area_create() {
 
@@ -186,10 +202,15 @@ bool BulletServerSW::area_is_ray_pickable(RID p_area) const{
 
 
 
+#pragma mark - Body API
+
 /* BODY API */
+
+
 
 RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 
+	printf(">>>creating body mode %d\n", p_mode);
 	return RID();
 }
 
@@ -307,6 +328,10 @@ void BulletServerSW::body_set_state(RID p_body, BodyState p_state, const Variant
 
 Variant BulletServerSW::body_get_state(RID p_body, BodyState p_state) const {
 
+	if (p_state == PhysicsServer::BODY_STATE_TRANSFORM) {
+		return Transform();
+	}
+
 	return Variant();
 }
 
@@ -398,7 +423,14 @@ bool BulletServerSW::body_is_ray_pickable(RID p_body) const{
 }
 
 
+
+#pragma mark - Joint API
+
 /* JOINT API */
+
+
+#pragma mark Pin Joint
+
 
 RID BulletServerSW::joint_create_pin(RID p_body_A,const Vector3& p_local_A,RID p_body_B,const Vector3& p_local_B) {
 
@@ -433,6 +465,9 @@ Vector3 BulletServerSW::pin_joint_get_local_B(RID p_joint) const{
 }
 
 
+#pragma mark Hinge Joint
+
+
 RID BulletServerSW::joint_create_hinge(RID p_body_A,const Transform& p_frame_A,RID p_body_B,const Transform& p_frame_B) {
 
 	return RID();
@@ -461,19 +496,9 @@ bool BulletServerSW::hinge_joint_get_flag(RID p_joint,HingeJointFlag p_flag) con
 	return false;
 }
 
-void BulletServerSW::joint_set_solver_priority(RID p_joint,int p_priority) {
 
-}
+#pragma mark Slider Joint
 
-int BulletServerSW::joint_get_solver_priority(RID p_joint) const{
-
-	return 0;
-}
-
-BulletServerSW::JointType BulletServerSW::joint_get_type(RID p_joint) const {
-
-	return JOINT_PIN;
-}
 
 RID BulletServerSW::joint_create_slider(RID p_body_A,const Transform& p_local_frame_A,RID p_body_B,const Transform& p_local_frame_B) {
 
@@ -490,6 +515,9 @@ float BulletServerSW::slider_joint_get_param(RID p_joint,SliderJointParam p_para
 }
 
 
+#pragma mark Twist Joint
+
+
 RID BulletServerSW::joint_create_cone_twist(RID p_body_A,const Transform& p_local_frame_A,RID p_body_B,const Transform& p_local_frame_B) {
 
 	return RID();
@@ -503,6 +531,10 @@ float BulletServerSW::cone_twist_joint_get_param(RID p_joint,ConeTwistJointParam
 
 	return 0;
 }
+
+
+#pragma mark 6DOF Joint
+
 
 RID BulletServerSW::joint_create_generic_6dof(RID p_body_A,const Transform& p_local_frame_A,RID p_body_B,const Transform& p_local_frame_B) {
 
@@ -526,6 +558,28 @@ bool BulletServerSW::generic_6dof_joint_get_flag(RID p_joint,Vector3::Axis p_axi
 
 	return false;
 }
+
+
+#pragma mark Misc
+
+
+void BulletServerSW::joint_set_solver_priority(RID p_joint,int p_priority) {
+	
+}
+
+int BulletServerSW::joint_get_solver_priority(RID p_joint) const{
+	
+	return 0;
+}
+
+BulletServerSW::JointType BulletServerSW::joint_get_type(RID p_joint) const {
+	
+	return JOINT_PIN;
+}
+
+
+#pragma mark (unused methods)
+
 
 #if 0
 void BulletServerSW::joint_set_param(RID p_joint, JointParam p_param, real_t p_value) {
@@ -567,6 +621,10 @@ PhysicsServer::JointType BulletServerSW::joint_get_type(RID p_joint) const {
 }
 
 #endif
+
+
+#pragma mark - Other methods
+
 
 void BulletServerSW::free(RID p_rid) {
 	
