@@ -145,7 +145,7 @@ RID VisualServer::_make_test_cube() {
 	tangents.push_back( normal_points[m_idx][0] );\
 	tangents.push_back( 1.0 );\
 	uvs.push_back( Vector3(uv_points[m_idx*2+0],uv_points[m_idx*2+1],0) );\
-	print_line(itos( (face_points[m_idx][0]>0?1:0)|(face_points[m_idx][1]>0?2:0)|(face_points[m_idx][2]>0?4:0)));\
+	/*print_line(itos( (face_points[m_idx][0]>0?1:0)|(face_points[m_idx][1]>0?2:0)|(face_points[m_idx][2]>0?4:0)));*/\
 	vtx_idx++;\
 
 	for (int i=0;i<6;i++) {
