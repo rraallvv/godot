@@ -131,7 +131,7 @@ void BulletBodySW::set_param(PhysicsServer::BodyParameter p_param, float p_value
 	switch(p_param) {
 		case PhysicsServer::BODY_PARAM_BOUNCE: {
 
-			body->setRestitution(btScalar(1.f));
+			body->setRestitution(btScalar(p_value));
 		} break;
 		case PhysicsServer::BODY_PARAM_FRICTION: {
 
