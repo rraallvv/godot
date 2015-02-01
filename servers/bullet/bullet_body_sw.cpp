@@ -101,11 +101,8 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 
 	if (space) {
 		if (mode==BulletServerSW::BODY_MODE_RIGID) {
-			btScalar mass = btScalar(0.01f);
-
-			btVector3 inertia;
-			shape->calculateLocalInertia(mass,inertia);
-			body->setMassProps(mass, inertia);
+			mass = btScalar(0.01f);
+			update_inertias();
 		}
 		space->discreteDynamicsWorld->addRigidBody(body);
 	}
@@ -127,9 +124,12 @@ void BulletBodySW::set_param(PhysicsServer::BodyParameter p_param, float p_value
 		} break;
 		case PhysicsServer::BODY_PARAM_FRICTION: {
 
+			body->setFriction(btScalar(p_value));
 		} break;
 		case PhysicsServer::BODY_PARAM_MASS: {
 
+			mass = btScalar(p_value);
+			update_inertias();
 		} break;
 		default:{}
 	}
@@ -152,4 +152,19 @@ Variant BulletBodySW::get_state(PhysicsServer::BodyState p_state) const {
 	}
 
 	return Variant();
+}
+
+void BulletBodySW::update_inertias() {
+
+	if (space)
+		space->discreteDynamicsWorld->removeRigidBody(body);
+
+	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
+
+	btVector3 inertia;
+	shape->calculateLocalInertia(mass,inertia);
+	body->setMassProps(mass,inertia);
+
+	if (space)
+		space->discreteDynamicsWorld->addRigidBody(body);
 }

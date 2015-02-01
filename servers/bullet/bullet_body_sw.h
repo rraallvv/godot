@@ -54,6 +54,7 @@ public:
 	void set_state(PhysicsServer::BodyState p_state, const Variant& p_variant);
 	void set_param(PhysicsServer::BodyParameter p_param, float p_value);
 	Variant get_state(PhysicsServer::BodyState p_state) const;
+	void update_inertias();
 };
 
 #endif

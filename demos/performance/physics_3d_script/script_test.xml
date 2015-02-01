@@ -126,9 +126,9 @@
 									<string> "distance" </string>
 									<real> 86.898094 </real>
 									<string> "x_rot" </string>
-									<real> 0.650001 </real>
+									<real> 0.412501 </real>
 									<string> "y_rot" </string>
-									<real> 0.675 </real>
+									<real> 1.3125 </real>
 									<string> "listener" </string>
 									<bool> True </bool>
 									<string> "use_environment" </string>

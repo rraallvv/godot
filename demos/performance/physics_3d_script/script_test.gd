@@ -1,10 +1,10 @@
+
 extends Spatial
 
 # This demo is an example of creating 3d body physics in GDScript.
 
 const CUBE_COUNT = 10
 const WIDTH = 10
-const RESTITUTION = 1.0
 	
 var cubes=[]
 var shape
@@ -32,10 +32,32 @@ func _ready():
 		
 		var trans = Transform()
 		trans.origin=Vector3(rand_range(-WIDTH,WIDTH),rand_range(5,10),rand_range(-WIDTH,WIDTH))
+		#if randf() > 0.5:
+		#	trans = trans.rotated(Vector3(1,1,1), 45)
 		
 		cube.set_transform(trans)
 		PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
-		PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,RESTITUTION)
+		
+		"""
+		if randf() > 0.5:
+			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,0.0)
+		else:
+			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,1.0)
+		"""
+		
+		"""
+		if randf() > 0.5:
+			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,0)
+		else:
+			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,0.01)
+		"""
+		
+		"""
+		if randf() > 0.5:
+			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_FRICTION,0.0)
+		else:
+			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_FRICTION,1.0)
+		"""
 		
 		cubes.append(cube)
 		add_child(cube)
