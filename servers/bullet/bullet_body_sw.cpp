@@ -70,27 +70,22 @@ void BulletBodySW::set_space(BulletSpaceSW *p_space) {
 		return;
 	if (mode == BulletServerSW::BODY_MODE_RIGID) {
 		if (space)
-			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
+			space->discreteDynamicsWorld->removeRigidBody(body);
 		if (p_space)
-			p_space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+			p_space->discreteDynamicsWorld->addRigidBody(body);
 	} else {
 		if (space)
-			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
+			space->discreteDynamicsWorld->removeRigidBody(body);
 		if (p_space)
-			p_space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+			p_space->discreteDynamicsWorld->addRigidBody(body);
 	}
 	space=p_space;
 }
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {
 
-	if (space) {
-		if (mode == BulletServerSW::BODY_MODE_RIGID) {
-			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
-		} else {
-			space->discreteDynamicsWorld->removeRigidBody((btRigidBody *)body);
-		}
-	}
+	if (space)
+		space->discreteDynamicsWorld->removeRigidBody(body);
 
 	Vector3 origin = p_transform.get_origin();
 	Matrix3 basis = p_transform.get_basis();
@@ -110,12 +105,9 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 
 			btVector3 inertia;
 			shape->calculateLocalInertia(mass,inertia);
-			((btRigidBody *)body)->setMassProps(mass, inertia);
-
-			space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
-		} else {
-			space->discreteDynamicsWorld->addRigidBody((btRigidBody *)body);
+			body->setMassProps(mass, inertia);
 		}
+		space->discreteDynamicsWorld->addRigidBody(body);
 	}
 }
 

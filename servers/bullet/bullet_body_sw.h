@@ -45,7 +45,7 @@ class BulletBodySW {
 
 public:
 	PhysicsServer::BodyMode mode;
-	btCollisionObject *body;
+	btRigidBody *body;
 	btScalar mass;
 
 	BulletSpaceSW *get_space();
