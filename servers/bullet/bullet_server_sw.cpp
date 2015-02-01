@@ -47,8 +47,6 @@ public:
 
 RID BulletServerSW::shape_create(ShapeType p_shape) {
 
-	printf(">>>creating shape type %d\n", p_shape);
-	
 	btCollisionShape* btShape = NULL;
 	
 	switch (p_shape) {
@@ -65,6 +63,8 @@ RID BulletServerSW::shape_create(ShapeType p_shape) {
 			break;
 	}
 	
+	printf(">>>creating shape type %d (%p)\n", p_shape, btShape);
+
 	BulletShapeSW *shape = memnew( BulletShapeSW );
 	shape->shape = btShape;
 	shape->type = p_shape;
@@ -78,8 +78,6 @@ void BulletServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
 
 	ERR_FAIL_COND(!shape);
 
-	printf(">>>setting shape data for type %d (%p)\n", shape->type, shape);
-
 	switch (shape->type) {
 		case SHAPE_PLANE: {
 			btPlaneShape *btShape = (btPlaneShape *)shape->shape;
@@ -87,13 +85,23 @@ void BulletServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
 			Vector3 planeNormal = planeData.normal;
 			real_t planeConstant = planeData.d;
 			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
+			printf(">>>setting shape data for type %d (%p)\n", shape->type, btShape);
 		}
 			break;
 			
 		case SHAPE_BOX: {
 			btBoxShape *btShape = (btBoxShape *)shape->shape;
-			Vector3 halfExtents = p_data;
-			btShape->setImplicitShapeDimensions(btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
+
+			Vector3 v = p_data;
+			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
+
+			btShape->setSafeMargin(halfExtents);
+
+			btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
+			btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
+			btShape->setImplicitShapeDimensions(implicitShapeDimensions);
+
+			printf(">>>setting shape data for type %d (%p)\n", shape->type, btShape);
 		}
 			break;
 			
@@ -295,8 +303,6 @@ bool BulletServerSW::area_is_ray_pickable(RID p_area) const{
 
 RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 
-	printf(">>>creating body mode %d\n", p_mode);
-
 	btScalar mass(0.0f);
 
 	if (p_mode == BODY_MODE_RIGID)
@@ -325,12 +331,12 @@ RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 	body->body = btBody;
 	body->mode = p_mode;
 
+	printf(">>>creating body mode %d (%p)\n", p_mode, btBody);
+
 	return body_owner.make_rid(body);
 }
 
 void BulletServerSW::body_set_space(RID p_body, RID p_space) {
-	
-	printf(">>>setting body space\n");
 	
 	BulletBodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -344,6 +350,8 @@ void BulletServerSW::body_set_space(RID p_body, RID p_space) {
 	if (body->get_space()==space)
 		return; //pointles
 	
+	printf(">>>setting space for body (%p)\n", body->body);
+
 	body->set_space(space);
 }
 
@@ -363,13 +371,13 @@ PhysicsServer::BodyMode BulletServerSW::body_get_mode(RID p_body, BodyMode p_mod
 
 void BulletServerSW::body_add_shape(RID p_body, RID p_shape, const Transform& p_transform) {
 
-	printf(">>>adding body shape\n");
-
 	BulletBodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
 
 	BulletShapeSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND(!shape);
+
+	printf(">>>adding shape (%p) to body (%p)\n", shape->shape, body->body);
 
 	body->add_shape(shape,p_transform);
 }
@@ -453,10 +461,10 @@ uint32_t BulletServerSW::body_get_user_flags(RID p_body, uint32_t p_flags) const
 
 void BulletServerSW::body_set_param(RID p_body, BodyParameter p_param, float p_value) {
 
-	printf(">>>setting body parameter\n");
-
 	BulletBodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
+
+	printf(">>>setting body parameter (%p)\n", body->body);
 
 	body->set_param(p_param,p_value);
 }
@@ -468,10 +476,10 @@ float BulletServerSW::body_get_param(RID p_body, BodyParameter p_param) const {
 
 void BulletServerSW::body_set_state(RID p_body, BodyState p_state, const Variant& p_variant) {
 
-	printf(">>>setting body state\n");
-
 	BulletBodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
+
+	printf(">>>setting body state (%p)\n", body->body);
 
 	body->set_state(p_state,p_variant);
 }
