@@ -41,9 +41,18 @@ class BulletBodySW;
 class BulletSpaceSW {
 	RID self;
 
-	class PhysicsBodyHelper : public PhysicsBody {
+	class PhysicsBodyHelper : public RigidBody {
 	public:
-		_FORCE_INLINE_ void set_ignore_transform_notification(bool p_ignore) { PhysicsBody::set_ignore_transform_notification(p_ignore); };
+		void _update_state(const Transform& p_transform, const Vector3& p_linear_velocity, const Vector3& p_angular_velocity, bool p_is_sleeping) {
+			set_ignore_transform_notification(true);
+			set_global_transform(p_transform);
+			set_linear_velocity(p_linear_velocity);
+			set_angular_velocity(p_angular_velocity);
+			set_sleeping(p_is_sleeping);
+			//if (get_script_instance())
+			//	get_script_instance()->call("_integrate_forces",state);
+			set_ignore_transform_notification(false);
+		}
 	};
 
 public:

@@ -63,9 +63,13 @@ void BulletSpaceSW::sync() {
 										basis[1].x(), basis[1].y(), basis[1].z(),
 										basis[2].x(), basis[2].y(), basis[2].z()));
 
-			obj->set_ignore_transform_notification(true);
-			obj->set_transform(transform);
-			obj->set_ignore_transform_notification(false);
+			btVector3 v = body->body->getLinearVelocity();
+			btVector3 av = body->body->getAngularVelocity();
+			Vector3 linear_velovity = Vector3(v.x(), v.y(), v.z());
+			Vector3 angular_velovity = Vector3(av.x(), av.y(), av.z());
+			bool is_sleeping = !body->body->isActive();
+
+			obj->_update_state(transform, linear_velovity, angular_velovity, is_sleeping);
 		}
 	}
 }
