@@ -51,16 +51,12 @@ void BulletSpaceSW::sync() {
 
 		if (obj) {
 
-			///printf(">>>(%p)\n", body->body);
-
 			motionState = (btDefaultMotionState*) body->body->getMotionState();
 
 			motionState->getWorldTransform(btTrans);
 
 			btVector3 origin = btTrans.getOrigin();
 			btMatrix3x3 basis = btTrans.getBasis();
-
-			//printf(">>>%f\n", origin.y());
 
 			transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
 			transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),

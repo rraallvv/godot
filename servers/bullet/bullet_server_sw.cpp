@@ -379,9 +379,9 @@ void BulletServerSW::body_add_shape(RID p_body, RID p_shape, const Transform& p_
 	BulletShapeSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND(!shape);
 
-	printf(">>>adding shape (%p) to body (%p)\n", shape->shape, body->body);
-
 	body->add_shape(shape,p_transform);
+
+	printf(">>>adding shape (%p) to body (%p) total %d\n", shape->shape, body->body, body->get_shape_count());
 }
 
 void BulletServerSW::body_set_shape(RID p_body, int p_shape_idx,RID p_shape) {
@@ -418,10 +418,20 @@ Transform BulletServerSW::body_get_shape_transform(RID p_body, int p_shape_idx) 
 
 void BulletServerSW::body_remove_shape(RID p_body, int p_shape_idx) {
 
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	body->remove_shape(p_shape_idx);
 }
 
 void BulletServerSW::body_clear_shapes(RID p_body) {
 
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	while(body->get_shape_count())
+		body->remove_shape(0);
+	
 }
 
 void BulletServerSW::body_set_enable_continuous_collision_detection(RID p_body,bool p_enable) {

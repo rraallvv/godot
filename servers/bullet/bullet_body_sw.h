@@ -55,6 +55,8 @@ public:
 	BulletSpaceSW *get_space();
 	void set_space(BulletSpaceSW *p_space);
 	void add_shape(BulletShapeSW *p_shape,const Transform& p_transform);
+	void remove_shape(int p_shape_idx);
+	int get_shape_count();
 	void set_state(PhysicsServer::BodyState p_state, const Variant& p_variant);
 	void set_param(PhysicsServer::BodyParameter p_param, float p_value);
 	Variant get_state(PhysicsServer::BodyState p_state) const;

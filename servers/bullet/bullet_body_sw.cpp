@@ -41,6 +41,7 @@ void BulletBodySW::_set_transform(const Transform& p_transform) {
 								   basis[2].x, basis[2].y, basis[2].z));
 
 	body->setWorldTransform(transform);
+	body->getMotionState()->setWorldTransform(transform);
 }
 
 Transform BulletBodySW::_get_transform() const {
@@ -111,6 +112,29 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 		}
 		space->discreteDynamicsWorld->addRigidBody(body);
 	}
+}
+
+void BulletBodySW::remove_shape(int p_shape_idx) {
+
+	if (space)
+		space->discreteDynamicsWorld->removeRigidBody(body);
+
+	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
+	shape->removeChildShapeByIndex(p_shape_idx);
+
+	if (space) {
+		if (mode==BulletServerSW::BODY_MODE_RIGID) {
+			mass = btScalar(0.01f);
+			update_inertias();
+		}
+		space->discreteDynamicsWorld->addRigidBody(body);
+	}
+}
+
+int BulletBodySW::get_shape_count() {
+
+	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
+	return shape->getNumChildShapes();
 }
 
 void BulletBodySW::set_state(PhysicsServer::BodyState p_state, const Variant& p_variant) {
