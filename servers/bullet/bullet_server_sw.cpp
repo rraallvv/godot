@@ -26,7 +26,9 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "bullet_server_sw.h"
+#include "bullet_space_sw.h"
 
 
 class btPlaneShape : public btStaticPlaneShape {

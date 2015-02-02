@@ -26,8 +26,9 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "bullet_body_sw.h"
+
 #include "bullet_server_sw.h"
+#include "bullet_space_sw.h"
 
 void BulletBodySW::_set_transform(const Transform& p_transform) {
 	Vector3 origin = p_transform.get_origin();

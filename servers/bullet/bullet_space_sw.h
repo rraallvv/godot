@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  bullet_body_sw.h                                                  */
+/*  bullet_space_sw.h                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,42 +26,41 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef BULLET_BODY_SW
-#define BULLET_BODY_SW
+#ifndef BULLET_SPACE_SW
+#define BULLET_SPACE_SW
 
 
-#include "servers/physics_server.h"
+#include "scene/3d/physics_body.h"
+#include "bullet_body_sw.h"
+#include "core/list.h"
 #include "bullet/btBulletDynamicsCommon.h"
 
 
-class BulletSpaceSW;
-class BulletShapeSW;
+class BulletBodySW;
 
-class BulletBodySW {
+class BulletSpaceSW {
 	RID self;
-	BulletSpaceSW *space = NULL;
 
-	void _set_transform(const Transform& p_transform);
-	Transform _get_transform() const;
+	class PhysicsBodyHelper : public PhysicsBody {
+	public:
+		_FORCE_INLINE_ void set_ignore_transform_notification(bool p_ignore) { PhysicsBody::set_ignore_transform_notification(p_ignore); };
+	};
 
 public:
+	btDiscreteDynamicsWorld *discreteDynamicsWorld;
+	btCollisionDispatcher *collisionDispatcher;
+	btDefaultCollisionConfiguration *collisionConfig;
+	btSequentialImpulseConstraintSolver *constraintSolver;
+	btDbvtBroadphase *broadphase;
+	List<BulletBodySW*> body_list;
 
-	ObjectID id;
+	bool add_body(BulletBodySW *p_body);
 
-	PhysicsServer::BodyMode mode;
-	btRigidBody *body;
-	btScalar mass;
+	void remove_body(BulletBodySW *p_body);
 
-	BulletSpaceSW *get_space();
-	void set_space(BulletSpaceSW *p_space);
-	void add_shape(BulletShapeSW *p_shape,const Transform& p_transform);
-	void set_state(PhysicsServer::BodyState p_state, const Variant& p_variant);
-	void set_param(PhysicsServer::BodyParameter p_param, float p_value);
-	Variant get_state(PhysicsServer::BodyState p_state) const;
-	void update_inertias();
-	void set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata);
-
+	void sync();
 };
+
 
 #endif
 

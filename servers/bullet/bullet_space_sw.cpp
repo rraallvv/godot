@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  bullet_body_sw.h                                                  */
+/*  bullet_space_sw.cpp                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,42 +26,50 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef BULLET_BODY_SW
-#define BULLET_BODY_SW
+
+#include "bullet_space_sw.h"
 
 
-#include "servers/physics_server.h"
-#include "bullet/btBulletDynamicsCommon.h"
+bool BulletSpaceSW::add_body(BulletBodySW *p_body) {
+	return body_list.push_back(p_body);
+}
 
+void BulletSpaceSW::remove_body(BulletBodySW *p_body) {
+	body_list.erase(p_body);
+}
 
-class BulletSpaceSW;
-class BulletShapeSW;
+void BulletSpaceSW::sync() {
 
-class BulletBodySW {
-	RID self;
-	BulletSpaceSW *space = NULL;
+	Transform transform;
+	btTransform btTrans;
+	btDefaultMotionState *motionState;
 
-	void _set_transform(const Transform& p_transform);
-	Transform _get_transform() const;
+	for (List<BulletBodySW*>::Element *E=body_list.front();E;E=E->next()) {
+		BulletBodySW *body = E->get();
 
-public:
+		PhysicsBodyHelper *obj = (PhysicsBodyHelper *)ObjectDB::get_instance(body->id);
 
-	ObjectID id;
+		if (obj) {
 
-	PhysicsServer::BodyMode mode;
-	btRigidBody *body;
-	btScalar mass;
+			///printf(">>>(%p)\n", body->body);
 
-	BulletSpaceSW *get_space();
-	void set_space(BulletSpaceSW *p_space);
-	void add_shape(BulletShapeSW *p_shape,const Transform& p_transform);
-	void set_state(PhysicsServer::BodyState p_state, const Variant& p_variant);
-	void set_param(PhysicsServer::BodyParameter p_param, float p_value);
-	Variant get_state(PhysicsServer::BodyState p_state) const;
-	void update_inertias();
-	void set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata);
+			motionState = (btDefaultMotionState*) body->body->getMotionState();
 
-};
+			motionState->getWorldTransform(btTrans);
 
-#endif
+			btVector3 origin = btTrans.getOrigin();
+			btMatrix3x3 basis = btTrans.getBasis();
 
+			//printf(">>>%f\n", origin.y());
+
+			transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
+			transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
+										basis[1].x(), basis[1].y(), basis[1].z(),
+										basis[2].x(), basis[2].y(), basis[2].z()));
+
+			obj->set_ignore_transform_notification(true);
+			obj->set_transform(transform);
+			obj->set_ignore_transform_notification(false);
+		}
+	}
+}
