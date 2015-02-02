@@ -350,7 +350,7 @@ void BulletServerSW::body_set_space(RID p_body, RID p_space) {
 	if (body->get_space()==space)
 		return; //pointles
 	
-	printf(">>>setting space for body (%p)\n", body->body);
+	printf(">>>setting space (%p) for body (%p)\n", space, body->body);
 
 	body->set_space(space);
 }
@@ -479,7 +479,7 @@ void BulletServerSW::body_set_state(RID p_body, BodyState p_state, const Variant
 	BulletBodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
 
-	printf(">>>setting body state (%p)\n", body->body);
+	//printf(">>>setting body state (%p)\n", body->body);
 
 	body->set_state(p_state,p_variant);
 }
@@ -570,6 +570,11 @@ int BulletServerSW::body_get_max_contacts_reported(RID p_body) const {
 
 void BulletServerSW::body_set_force_integration_callback(RID p_body,Object *p_receiver,const StringName& p_method,const Variant& p_udata) {
 
+
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+	body->set_force_integration_callback(p_receiver?p_receiver->get_instance_ID():ObjectID(0),p_method,p_udata);
+	
 }
 
 void BulletServerSW::body_set_ray_pickable(RID p_body,bool p_enable) {
@@ -786,10 +791,16 @@ void BulletServerSW::free(RID p_rid) {
 
 void BulletServerSW::set_active(bool p_active) {
 
+	active=p_active;
 }
 
 void BulletServerSW::init() {
 
+	doing_sync=true;
+	//last_step=0.001;
+	//iterations=8;// 8?
+	//stepper = memnew( StepSW );
+	//direct_state = memnew( PhysicsDirectBodyStateSW );
 }
 
 void BulletServerSW::step(float p_step) {
@@ -819,9 +830,21 @@ void BulletServerSW::step(float p_step) {
 
 void BulletServerSW::sync() {
 
+	if (!active)
+		return;
+
+	doing_sync=true;
+	for( Set<const BulletSpaceSW*>::Element *E=active_spaces.front();E;E=E->next()) {
+
+		BulletSpaceSW *space=(BulletSpaceSW *)E->get();
+		space->sync();
+	}
 }
 
 void BulletServerSW::flush_queries() {
+
+	if (!active)
+		return;
 
 }
 

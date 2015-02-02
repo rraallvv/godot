@@ -33,7 +33,10 @@
 #include "servers/physics_server.h"
 #include "bullet_body_sw.h"
 #include "bullet/btBulletDynamicsCommon.h"
+#include "list.h"
+#include "scene/3d/physics_body.h"
 
+class BulletBodySW;
 
 class BulletSpaceSW {
 	RID self;
@@ -43,6 +46,56 @@ public:
 	btDefaultCollisionConfiguration *collisionConfig;
 	btSequentialImpulseConstraintSolver *constraintSolver;
 	btDbvtBroadphase *broadphase;
+	List<BulletBodySW*> body_list;
+
+	bool add_body(BulletBodySW *p_body) {
+		return body_list.push_back(p_body);
+	}
+
+	void remove_body(BulletBodySW *p_body) {
+		body_list.erase(p_body);
+	}
+
+	class PhysicsBodyHelper : public PhysicsBody {
+	public:
+		_FORCE_INLINE_ void set_ignore_transform_notification(bool p_ignore) { PhysicsBody::set_ignore_transform_notification(p_ignore); };
+	};
+
+	void sync() {
+
+		Transform transform;
+		btTransform btTrans;
+		btDefaultMotionState *motionState;
+
+		for (List<BulletBodySW*>::Element *E=body_list.front();E;E=E->next()) {
+			BulletBodySW *body = E->get();
+
+			PhysicsBodyHelper *obj = (PhysicsBodyHelper *)ObjectDB::get_instance(body->id);
+
+			if (obj) {
+
+				///printf(">>>(%p)\n", body->body);
+
+				motionState = (btDefaultMotionState*) body->body->getMotionState();
+
+				motionState->getWorldTransform(btTrans);
+
+				btVector3 origin = btTrans.getOrigin();
+				btMatrix3x3 basis = btTrans.getBasis();
+
+				//printf(">>>%f\n", origin.y());
+
+				transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
+				transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
+											basis[1].x(), basis[1].y(), basis[1].z(),
+											basis[2].x(), basis[2].y(), basis[2].z()));
+
+				obj->set_ignore_transform_notification(true);
+				obj->set_transform(transform);
+				obj->set_ignore_transform_notification(false);
+			}
+		}
+	}
 };
 
 

@@ -44,6 +44,9 @@ class BulletBodySW {
 	Transform _get_transform() const;
 
 public:
+
+	ObjectID id;
+
 	PhysicsServer::BodyMode mode;
 	btRigidBody *body;
 	btScalar mass;
@@ -55,6 +58,8 @@ public:
 	void set_param(PhysicsServer::BodyParameter p_param, float p_value);
 	Variant get_state(PhysicsServer::BodyState p_state) const;
 	void update_inertias();
+	void set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata);
+
 };
 
 #endif
