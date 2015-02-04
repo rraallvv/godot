@@ -37,13 +37,7 @@ func _ready():
 		
 		cube.set_transform(trans)
 		PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
-		
-		"""
-		if randf() > 0.5:
-			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,0.0)
-		else:
-			PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,1.0)
-		"""
+		PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,1.0)
 		
 		"""
 		if randf() > 0.5:

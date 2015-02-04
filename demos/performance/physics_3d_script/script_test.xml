@@ -12,7 +12,7 @@
 	<main_resource>
 		<dictionary name="_bundled" shared="false">
 			<string> "names" </string>
-			<string_array  len="77">
+			<string_array  len="98">
 				<string> "Spatial" </string>
 				<string> "_import_path" </string>
 				<string> "_import_transform" </string>
@@ -58,6 +58,21 @@
 				<string> "shapes/0/shape" </string>
 				<string> "shapes/0/transform" </string>
 				<string> "shapes/0/trigger" </string>
+				<string> "shapes/1/shape" </string>
+				<string> "shapes/1/transform" </string>
+				<string> "shapes/1/trigger" </string>
+				<string> "shapes/2/shape" </string>
+				<string> "shapes/2/transform" </string>
+				<string> "shapes/2/trigger" </string>
+				<string> "shapes/3/shape" </string>
+				<string> "shapes/3/transform" </string>
+				<string> "shapes/3/trigger" </string>
+				<string> "shapes/4/shape" </string>
+				<string> "shapes/4/transform" </string>
+				<string> "shapes/4/trigger" </string>
+				<string> "shapes/5/shape" </string>
+				<string> "shapes/5/transform" </string>
+				<string> "shapes/5/trigger" </string>
 				<string> "friction" </string>
 				<string> "bounce" </string>
 				<string> "constant_linear_velocity" </string>
@@ -75,9 +90,15 @@
 				<string> "geometry/visible_in_all_rooms" </string>
 				<string> "geometry/use_baked_light" </string>
 				<string> "geometry/baked_light_tex_id" </string>
+				<string> "Bottom" </string>
 				<string> "CollisionShape" </string>
 				<string> "shape" </string>
 				<string> "trigger" </string>
+				<string> "Top" </string>
+				<string> "Back" </string>
+				<string> "Front" </string>
+				<string> "Left" </string>
+				<string> "Right" </string>
 				<string> "RigidBody" </string>
 				<string> "mode" </string>
 				<string> "mass" </string>
@@ -96,9 +117,9 @@
 			<string> "conn_count" </string>
 			<int> 0 </int>
 			<string> "node_count" </string>
-			<int> 9 </int>
+			<int> 14 </int>
 			<string> "variants" </string>
-			<array  len="27" shared="false">
+			<array  len="34" shared="false">
 				<node_path> "" </node_path>
 				<transform> 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 </transform>
 				<bool> True </bool>
@@ -140,7 +161,7 @@
 							<array  len="4" shared="false">
 								<dictionary  shared="false">
 									<string> "distance" </string>
-									<real> 86.898094 </real>
+									<real> 63.872692 </real>
 									<string> "x_rot" </string>
 									<real> 0.412501 </real>
 									<string> "y_rot" </string>
@@ -152,7 +173,7 @@
 									<string> "use_orthogonal" </string>
 									<bool> False </bool>
 									<string> "pos" </string>
-									<vector3> -6.54139, -0.715756, -0.390608 </vector3>
+									<vector3> 0, 10, 10 </vector3>
 								</dictionary>
 								<dictionary  shared="false">
 									<string> "distance" </string>
@@ -231,7 +252,7 @@
 					<string> "__editor_plugin_screen__" </string>
 					<string> "3D" </string>
 				</dictionary>
-				<transform> 1, 0, 0, 0, 0.953067, 0.30276, 0, -0.30276, 0.953066, 0, 8.88563, 25.1574 </transform>
+				<transform> 1, 0, 0, 0, 0.953067, 0.30276, 0, -0.30276, 0.953066, 0, 16, 30 </transform>
 				<int> 0 </int>
 				<real> 60 </real>
 				<real> 0.1 </real>
@@ -246,15 +267,25 @@
 				<real> 0.05 </real>
 				<real> 0.5 </real>
 				<real> 2 </real>
+				<int> 6 </int>
 				<resource  resource_type="Shape" path="local://0">  </resource>
+				<transform> 1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 20, 0 </transform>
+				<transform> 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 10, -10 </transform>
+				<transform> 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 10, 10 </transform>
+				<transform> -4.37114e-08, 1, 5.23599e-08, 4.37114e-08, -5.23599e-08, 1, 1, 4.37114e-08, -4.37114e-08, -10, 10, 0 </transform>
+				<transform> -4.37114e-08, -1, -5.23599e-08, -4.37114e-08, -5.23599e-08, 1, -1, 4.37114e-08, -4.37114e-08, 10, 10, 0 </transform>
 				<vector3> 0, 0, 0 </vector3>
 				<transform> 10, 0, 0, 0, 0.1, 0, 0, 0, 10, 0, -0.1, 0 </transform>
 				<transform> 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0 </transform>
 				<resource  resource_type="Shape" path="local://1">  </resource>
 				<real> 0.01 </real>
+				<dictionary  shared="false">
+					<string> "_editor_collapsed" </string>
+					<bool> True </bool>
+				</dictionary>
 			</array>
 			<string> "nodes" </string>
-			<int_array  len="309"> 				-1, -1, 0, 0, -1, 5, 1, 0, 2, 1, 3, 2, 4, 3, 5, 4, 0, 0, 0, 6, 6, -1, 14, 1, 0, 2, 1, 7, 5, 3, 2, 8, 6, 9, 7, 10, 8, 11, 9, 12, 10, 13, 11, 14, 12, 15, 13, 16, 14, 17, 14, 0, 1, 0, 18, 18, -1, 23, 1, 0, 2, 1, 7, 15, 3, 2, 19, 10, 20, 2, 21, 11, 22, 6, 23, 16, 24, 17, 25, 17, 26, 11, 27, 14, 28, 18, 29, 14, 30, 7, 31, 16, 32, 13, 33, 6, 34, 6, 35, 14, 36, 19, 37, 20, 0, 0, 0, 38, 38, -1, 14, 1, 0, 2, 1, 3, 2, 39, 2, 40, 11, 41, 10, 42, 21, 43, 1, 44, 11, 19, 10, 45, 16, 46, 16, 47, 22, 48, 22, 0, 3, 0, 49, 49, -1, 17, 1, 0, 2, 1, 7, 23, 3, 2, 19, 10, 50, 2, 51, 13, 52, 2, 53, 2, 54, 14, 55, 14, 56, 11, 57, 11, 58, 11, 59, 11, 60, 11, 61, 6, 0, 3, 0, 62, 62, -1, 5, 1, 0, 2, 1, 3, 2, 63, 21, 64, 11, 0, 0, 0, 65, 65, -1, 24, 1, 0, 2, 1, 7, 24, 3, 2, 39, 2, 40, 11, 41, 10, 42, 25, 43, 1, 44, 11, 19, 10, 66, 6, 67, 26, 45, 16, 46, 16, 68, 11, 69, 11, 70, 6, 71, 11, 72, 11, 73, 2, 74, 6, 75, 22, 76, 22, 0, 6, 0, 49, 49, -1, 16, 1, 0, 2, 1, 3, 2, 19, 10, 50, 2, 51, 13, 52, 2, 53, 2, 54, 14, 55, 14, 56, 11, 57, 11, 58, 11, 59, 11, 60, 11, 61, 6, 0, 6, 0, 62, 62, -1, 5, 1, 0, 2, 1, 3, 2, 63, 25, 64, 11, 0 </int_array>
+			<int_array  len="436"> 				-1, -1, 0, 0, -1, 5, 1, 0, 2, 1, 3, 2, 4, 3, 5, 4, 0, 0, 0, 6, 6, -1, 14, 1, 0, 2, 1, 7, 5, 3, 2, 8, 6, 9, 7, 10, 8, 11, 9, 12, 10, 13, 11, 14, 12, 15, 13, 16, 14, 17, 14, 0, 1, 0, 18, 18, -1, 23, 1, 0, 2, 1, 7, 15, 3, 2, 19, 10, 20, 2, 21, 11, 22, 6, 23, 16, 24, 17, 25, 17, 26, 11, 27, 14, 28, 18, 29, 14, 30, 7, 31, 16, 32, 13, 33, 6, 34, 6, 35, 14, 36, 19, 37, 20, 0, 0, 0, 38, 38, -1, 29, 1, 0, 2, 1, 3, 2, 39, 2, 40, 11, 41, 21, 42, 22, 43, 1, 44, 11, 45, 22, 46, 23, 47, 11, 48, 22, 49, 24, 50, 11, 51, 22, 52, 25, 53, 11, 54, 22, 55, 26, 56, 11, 57, 22, 58, 27, 59, 11, 19, 10, 60, 16, 61, 16, 62, 28, 63, 28, 0, 3, 0, 64, 64, -1, 17, 1, 0, 2, 1, 7, 29, 3, 2, 19, 10, 65, 2, 66, 13, 67, 2, 68, 2, 69, 14, 70, 14, 71, 11, 72, 11, 73, 11, 74, 11, 75, 11, 76, 6, 0, 3, 0, 78, 77, -1, 5, 1, 0, 2, 1, 3, 2, 79, 22, 80, 11, 0, 3, 0, 78, 81, -1, 6, 1, 0, 2, 1, 7, 23, 3, 2, 79, 22, 80, 11, 0, 3, 0, 78, 82, -1, 6, 1, 0, 2, 1, 7, 24, 3, 2, 79, 22, 80, 11, 0, 3, 0, 78, 83, -1, 6, 1, 0, 2, 1, 7, 25, 3, 2, 79, 22, 80, 11, 0, 3, 0, 78, 84, -1, 6, 1, 0, 2, 1, 7, 26, 3, 2, 79, 22, 80, 11, 0, 3, 0, 78, 85, -1, 6, 1, 0, 2, 1, 7, 27, 3, 2, 79, 22, 80, 11, 0, 0, 0, 86, 86, -1, 25, 1, 0, 2, 1, 7, 30, 3, 2, 39, 2, 40, 11, 41, 10, 42, 31, 43, 1, 44, 11, 19, 10, 87, 6, 88, 32, 60, 16, 61, 16, 89, 11, 90, 11, 91, 6, 92, 11, 93, 11, 94, 2, 95, 6, 96, 28, 97, 28, 5, 33, 0, 11, 0, 64, 64, -1, 16, 1, 0, 2, 1, 3, 2, 19, 10, 65, 2, 66, 13, 67, 2, 68, 2, 69, 14, 70, 14, 71, 11, 72, 11, 73, 11, 74, 11, 75, 11, 76, 6, 0, 11, 0, 78, 78, -1, 5, 1, 0, 2, 1, 3, 2, 79, 31, 80, 11, 0 </int_array>
 			<string> "conns" </string>
 			<int_array  len="0"> 				 </int_array>
 		</dictionary>
