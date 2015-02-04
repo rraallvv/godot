@@ -78,6 +78,14 @@ void BulletSpaceSW::sync() {
 	}
 }
 
+void BulletSpaceSW::setup() {
+
+	while(inertia_update_list.first()) {
+		inertia_update_list.first()->self()->update_inertias();
+		inertia_update_list.remove(inertia_update_list.first());
+	}
+}
+
 void BulletSpaceSW::set_param(PhysicsServer::SpaceParameter p_param, real_t p_value) {
 
 	switch(p_param) {
@@ -108,4 +116,14 @@ real_t BulletSpaceSW::get_param(PhysicsServer::SpaceParameter p_param) const {
 			break;
 	}
 	return 0;
+}
+
+void BulletSpaceSW::body_add_to_inertia_update_list(SelfList<BulletBodySW>* p_body) {
+
+	inertia_update_list.add(p_body);
+}
+
+void BulletSpaceSW::body_remove_from_inertia_update_list(SelfList<BulletBodySW>* p_body) {
+
+	inertia_update_list.remove(p_body);
 }

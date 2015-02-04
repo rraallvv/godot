@@ -41,6 +41,8 @@ class BulletBodySW;
 class BulletSpaceSW {
 	RID self;
 
+	SelfList<BulletBodySW>::List inertia_update_list;
+
 	class PhysicsBodyHelper : public RigidBody {
 	public:
 		void _update_state(const Transform& p_transform, const Vector3& p_linear_velocity, const Vector3& p_angular_velocity, bool p_is_sleeping) {
@@ -66,7 +68,11 @@ public:
 	void add_object(BulletBodySW *p_object);
 	void remove_object(BulletBodySW *p_object);
 
+	void body_add_to_inertia_update_list(SelfList<BulletBodySW>* p_body);
+	void body_remove_from_inertia_update_list(SelfList<BulletBodySW>* p_body);
+
 	void sync();
+	void setup();
 
 	void set_param(PhysicsServer::SpaceParameter p_param, real_t p_value);
 	real_t get_param(PhysicsServer::SpaceParameter p_param) const;
