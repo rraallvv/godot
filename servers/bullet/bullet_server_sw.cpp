@@ -176,11 +176,17 @@ bool BulletServerSW::space_is_active(RID p_space) const {
 
 void BulletServerSW::space_set_param(RID p_space,SpaceParameter p_param, real_t p_value) {
 
+	BulletSpaceSW *space = space_owner.get(p_space);
+	ERR_FAIL_COND(!space);
+
+	space->set_param(p_param,p_value);
 }
 
 real_t BulletServerSW::space_get_param(RID p_space,SpaceParameter p_param) const {
 
-	return 0;
+	const BulletSpaceSW *space = space_owner.get(p_space);
+	ERR_FAIL_COND_V(!space,0);
+	return space->get_param(p_param);
 }
 
 PhysicsDirectSpaceState* BulletServerSW::space_get_direct_state(RID p_space) {
