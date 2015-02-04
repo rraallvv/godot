@@ -37,13 +37,13 @@
 */
 
 #if defined(USE_SSE)
-#define v1000 (_mm_set_ps(0.0f,0.0f,0.0f,1.0f))
-#define v0100 (_mm_set_ps(0.0f,0.0f,1.0f,0.0f))
-#define v0010 (_mm_set_ps(0.0f,1.0f,0.0f,0.0f))
+#define SIMD_v1000 (_mm_set_ps(0.0f,0.0f,0.0f,1.0f))
+#define SIMD_v0100 (_mm_set_ps(0.0f,0.0f,1.0f,0.0f))
+#define SIMD_v0010 (_mm_set_ps(0.0f,1.0f,0.0f,0.0f))
 #elif defined(USE_NEON)
-const SimdFloat4 ATTRIBUTE_ALIGNED16(v1000) = {1.0f, 0.0f, 0.0f, 0.0f};
-const SimdFloat4 ATTRIBUTE_ALIGNED16(v0100) = {0.0f, 1.0f, 0.0f, 0.0f};
-const SimdFloat4 ATTRIBUTE_ALIGNED16(v0010) = {0.0f, 0.0f, 1.0f, 0.0f};
+const SimdFloat4 ATTRIBUTE_ALIGNED16(SIMD_v1000) = {1.0f, 0.0f, 0.0f, 0.0f};
+const SimdFloat4 ATTRIBUTE_ALIGNED16(SIMD_v0100) = {0.0f, 1.0f, 0.0f, 0.0f};
+const SimdFloat4 ATTRIBUTE_ALIGNED16(SIMD_v0010) = {0.0f, 0.0f, 1.0f, 0.0f};
 #endif
 
 class Matrix3 {
@@ -215,9 +215,9 @@ public:
 	_FORCE_INLINE_ Matrix3() {
 	
 #if defined (USE_SSE) || defined (USE_NEON)
-		elements[0] = v1000;
-		elements[1] = v0100;
-		elements[2] = v0010;
+		elements[0] = SIMD_v1000;
+		elements[1] = SIMD_v0100;
+		elements[2] = SIMD_v0010;
 #else
 		set(real_t(1.0), real_t(0.0), real_t(0.0),
 			real_t(0.0), real_t(1.0), real_t(0.0),

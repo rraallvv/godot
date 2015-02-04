@@ -134,7 +134,11 @@ void OSIPhone::initialize(const VideoMode& p_desired,int p_video_driver,int p_au
 	spatial_sound_2d_server->init();
 
 	//
+#ifdef USE_BULLET_SERVER
+	physics_server = memnew( BulletServerSW );
+#else
 	physics_server = memnew( PhysicsServerSW );
+#endif
 	physics_server->init();
 	physics_2d_server = memnew( Physics2DServerSW );
 	physics_2d_server->init();

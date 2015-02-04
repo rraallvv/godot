@@ -31,12 +31,20 @@
 #ifndef OS_IPHONE_H
 #define OS_IPHONE_H
 
+#define USE_BULLET_SERVER
+
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"
 
 #include "servers/visual_server.h"
 #include "servers/visual/rasterizer.h"
-#include "servers/physics/physics_server_sw.h"
+
+#ifdef USE_BULLET_SERVER
+	#include "servers/bullet/bullet_server_sw.h"
+#else
+	#include "servers/physics/physics_server_sw.h"
+#endif
+
 #include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/audio/audio_server_sw.h"
 #include "servers/audio/sample_manager_sw.h"

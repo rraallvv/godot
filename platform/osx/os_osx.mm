@@ -34,8 +34,6 @@
 #include <IOKit/hid/IOHIDLib.h>
 #include <IOKit/hid/IOHIDKeys.h>
 
-#define USE_BULLET_SERVER
-
 #include "sem_osx.h"
 #include "servers/visual/visual_server_raster.h"
 //#include "drivers/opengl/rasterizer_gl.h"
