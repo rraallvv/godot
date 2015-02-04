@@ -30,12 +30,16 @@
 #include "bullet_space_sw.h"
 
 
-bool BulletSpaceSW::add_body(BulletBodySW *p_body) {
-	return body_list.push_back(p_body);
+void BulletSpaceSW::add_object(BulletBodySW *p_object) {
+
+	ERR_FAIL_COND( objects.has(p_object) );
+	objects.insert(p_object);
 }
 
-void BulletSpaceSW::remove_body(BulletBodySW *p_body) {
-	body_list.erase(p_body);
+void BulletSpaceSW::remove_object(BulletBodySW *p_object) {
+
+	ERR_FAIL_COND( !objects.has(p_object) );
+	objects.erase(p_object);
 }
 
 void BulletSpaceSW::sync() {
@@ -44,7 +48,7 @@ void BulletSpaceSW::sync() {
 	btTransform btTrans;
 	btDefaultMotionState *motionState;
 
-	for (List<BulletBodySW*>::Element *E=body_list.front();E;E=E->next()) {
+	for (Set<BulletBodySW*>::Element *E=objects.front();E;E=E->next()) {
 		BulletBodySW *body = E->get();
 
 		PhysicsBodyHelper *obj = (PhysicsBodyHelper *)ObjectDB::get_instance(body->id);

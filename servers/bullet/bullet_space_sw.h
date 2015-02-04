@@ -61,11 +61,10 @@ public:
 	btDefaultCollisionConfiguration *collisionConfig;
 	btSequentialImpulseConstraintSolver *constraintSolver;
 	btDbvtBroadphase *broadphase;
-	List<BulletBodySW*> body_list;
+	Set<BulletBodySW*> objects;
 
-	bool add_body(BulletBodySW *p_body);
-
-	void remove_body(BulletBodySW *p_body);
+	void add_object(BulletBodySW *p_object);
+	void remove_object(BulletBodySW *p_object);
 
 	void sync();
 

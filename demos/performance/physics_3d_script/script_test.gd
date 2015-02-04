@@ -31,7 +31,7 @@ func _ready():
 		PhysicsServer.body_add_shape(cube.body,shape)
 		
 		var trans = Transform()
-		trans.origin=Vector3(rand_range(-WIDTH,WIDTH),rand_range(5,10),rand_range(-WIDTH,WIDTH))
+		trans.origin=Vector3(rand_range(-WIDTH,WIDTH),10,rand_range(-WIDTH,WIDTH))
 		#if randf() > 0.5:
 		#	trans = trans.rotated(Vector3(1,1,1), 45)
 		

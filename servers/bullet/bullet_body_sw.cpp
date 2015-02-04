@@ -78,11 +78,11 @@ void BulletBodySW::set_space(BulletSpaceSW *p_space) {
 
 	if (space) {
 		space->discreteDynamicsWorld->removeRigidBody(body);
-		space->remove_body(this);
+		space->remove_object(this);
 	}
 	if (p_space) {
 		p_space->discreteDynamicsWorld->addRigidBody(body);
-		p_space->add_body(this);
+		p_space->add_object(this);
 	}
 
 	space=p_space;
