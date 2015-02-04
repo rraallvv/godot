@@ -63,6 +63,23 @@ Transform BulletBodySW::_get_transform() const {
 	return transform;
 }
 
+void BulletBodySW::_set_space(BulletSpaceSW *p_space) {
+
+	if (space) {
+
+		space->remove_object(this);
+		space->discreteDynamicsWorld->removeRigidBody(body);
+	}
+
+	space=p_space;
+
+	if (space) {
+
+		space->add_object(this);
+		space->discreteDynamicsWorld->addRigidBody(body);
+	}	
+}
+
 void BulletBodySW::set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata) {
 
 	id=p_id;
@@ -73,19 +90,8 @@ BulletSpaceSW *BulletBodySW::get_space() {
 }
 
 void BulletBodySW::set_space(BulletSpaceSW *p_space) {
-	if (p_space==space)
-		return;
 
-	if (space) {
-		space->discreteDynamicsWorld->removeRigidBody(body);
-		space->remove_object(this);
-	}
-	if (p_space) {
-		p_space->discreteDynamicsWorld->addRigidBody(body);
-		p_space->add_object(this);
-	}
-
-	space=p_space;
+	_set_space(p_space);
 }
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {

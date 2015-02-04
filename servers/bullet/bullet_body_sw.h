@@ -43,6 +43,7 @@ class BulletBodySW {
 
 	void _set_transform(const Transform& p_transform);
 	Transform _get_transform() const;
+	void _set_space(BulletSpaceSW *p_space);
 
 public:
 
