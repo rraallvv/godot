@@ -80,6 +80,13 @@ void BulletBodySW::_set_space(BulletSpaceSW *p_space) {
 	}	
 }
 
+void BulletBodySW::_update_inertia() {
+
+	if (get_space() && !inertia_update_list.in_list())
+		get_space()->body_add_to_inertia_update_list(&inertia_update_list);
+
+}
+
 void BulletBodySW::set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata) {
 
 	id=p_id;
@@ -89,9 +96,35 @@ BulletSpaceSW *BulletBodySW::get_space() {
 	return space;
 }
 
-void BulletBodySW::set_space(BulletSpaceSW *p_space) {
+void BulletBodySW::set_space(BulletSpaceSW *p_space){
+
+	if (get_space()) {
+
+		if (inertia_update_list.in_list())
+			get_space()->body_remove_from_inertia_update_list(&inertia_update_list);
+//		if (active_list.in_list())
+//			get_space()->body_remove_from_active_list(&active_list);
+//		if (direct_state_query_list.in_list())
+//			get_space()->body_remove_from_state_query_list(&direct_state_query_list);
+
+	}
 
 	_set_space(p_space);
+
+	if (get_space()) {
+
+		_update_inertia();
+//		if (active)
+//			get_space()->body_add_to_active_list(&active_list);
+		
+//		_update_queries();
+		//if (is_active()) {
+		//	active=false;
+		//	set_active(true);
+		//}
+		
+	}
+	
 }
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {
@@ -114,7 +147,7 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 	if (space) {
 		if (mode==BulletServerSW::BODY_MODE_RIGID) {
 			mass = btScalar(0.01f);
-			update_inertias();
+			_update_inertia();
 		}
 		space->discreteDynamicsWorld->addRigidBody(body);
 	}
@@ -131,7 +164,7 @@ void BulletBodySW::remove_shape(int p_shape_idx) {
 	if (space) {
 		if (mode==BulletServerSW::BODY_MODE_RIGID) {
 			mass = btScalar(0.01f);
-			update_inertias();
+			_update_inertia();
 		}
 		space->discreteDynamicsWorld->addRigidBody(body);
 	}
@@ -164,7 +197,7 @@ void BulletBodySW::set_param(PhysicsServer::BodyParameter p_param, float p_value
 		case PhysicsServer::BODY_PARAM_MASS: {
 
 			mass = btScalar(p_value);
-			update_inertias();
+			_update_inertia();
 		} break;
 		default:{}
 	}
@@ -202,4 +235,8 @@ void BulletBodySW::update_inertias() {
 
 	if (space)
 		space->discreteDynamicsWorld->addRigidBody(body);
+}
+
+BulletBodySW::BulletBodySW() : inertia_update_list(this) {
+
 }

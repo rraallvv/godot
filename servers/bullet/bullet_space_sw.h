@@ -73,6 +73,7 @@ public:
 
 	void sync();
 	void setup();
+	void step(float p_delta,int p_iterations);
 
 	void set_param(PhysicsServer::SpaceParameter p_param, real_t p_value);
 	real_t get_param(PhysicsServer::SpaceParameter p_param) const;

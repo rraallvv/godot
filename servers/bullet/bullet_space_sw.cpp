@@ -86,6 +86,13 @@ void BulletSpaceSW::setup() {
 	}
 }
 
+void BulletSpaceSW::step(float p_delta,int p_iterations) {
+
+	setup();
+
+	discreteDynamicsWorld->stepSimulation(1.f/60, 0);
+}
+
 void BulletSpaceSW::set_param(PhysicsServer::SpaceParameter p_param, real_t p_value) {
 
 	switch(p_param) {

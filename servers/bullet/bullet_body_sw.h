@@ -32,6 +32,7 @@
 
 #include "servers/physics_server.h"
 #include "bullet/btBulletDynamicsCommon.h"
+#include "core/self_list.h"
 
 
 class BulletSpaceSW;
@@ -41,9 +42,12 @@ class BulletBodySW {
 	RID self;
 	BulletSpaceSW *space = NULL;
 
+	SelfList<BulletBodySW> inertia_update_list;
+
 	void _set_transform(const Transform& p_transform);
 	Transform _get_transform() const;
 	void _set_space(BulletSpaceSW *p_space);
+	void _update_inertia();
 
 public:
 
@@ -64,6 +68,7 @@ public:
 	void update_inertias();
 	void set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata);
 
+	BulletBodySW();
 };
 
 #endif
