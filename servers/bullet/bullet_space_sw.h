@@ -77,6 +77,8 @@ public:
 
 	void set_param(PhysicsServer::SpaceParameter p_param, real_t p_value);
 	real_t get_param(PhysicsServer::SpaceParameter p_param) const;
+
+	void call_queries();
 };
 
 

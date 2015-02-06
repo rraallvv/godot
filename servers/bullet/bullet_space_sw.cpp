@@ -44,38 +44,6 @@ void BulletSpaceSW::remove_object(BulletBodySW *p_object) {
 
 void BulletSpaceSW::sync() {
 
-	Transform transform;
-	btTransform btTrans;
-	btDefaultMotionState *motionState;
-
-	for (Set<BulletBodySW*>::Element *E=objects.front();E;E=E->next()) {
-		BulletBodySW *body = E->get();
-
-		PhysicsBodyHelper *obj = (PhysicsBodyHelper *)ObjectDB::get_instance(body->id);
-
-		if (obj) {
-
-			motionState = (btDefaultMotionState*) body->body->getMotionState();
-
-			motionState->getWorldTransform(btTrans);
-
-			btVector3 origin = btTrans.getOrigin();
-			btMatrix3x3 basis = btTrans.getBasis();
-
-			transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
-			transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
-										basis[1].x(), basis[1].y(), basis[1].z(),
-										basis[2].x(), basis[2].y(), basis[2].z()));
-
-			btVector3 v = body->body->getLinearVelocity();
-			btVector3 av = body->body->getAngularVelocity();
-			Vector3 linear_velovity = Vector3(v.x(), v.y(), v.z());
-			Vector3 angular_velovity = Vector3(av.x(), av.y(), av.z());
-			bool is_sleeping = !body->body->isActive();
-
-			obj->_update_state(transform, linear_velovity, angular_velovity, is_sleeping);
-		}
-	}
 }
 
 void BulletSpaceSW::setup() {
@@ -129,8 +97,31 @@ void BulletSpaceSW::body_add_to_inertia_update_list(SelfList<BulletBodySW>* p_bo
 
 	inertia_update_list.add(p_body);
 }
-
 void BulletSpaceSW::body_remove_from_inertia_update_list(SelfList<BulletBodySW>* p_body) {
 
 	inertia_update_list.remove(p_body);
+}
+
+void BulletSpaceSW::call_queries() {
+
+	for (Set<BulletBodySW*>::Element *E=objects.front();E;E=E->next()) {
+		BulletBodySW *body = E->get();
+		body->call_queries();
+	}
+
+	/*
+	while(state_query_list.first()) {
+
+		BulletBodySW * b = state_query_list.first()->self();
+		b->call_queries();
+		state_query_list.remove(state_query_list.first());
+	}
+
+	while(monitor_query_list.first()) {
+
+		AreaSW * a = monitor_query_list.first()->self();
+		a->call_queries();
+		monitor_query_list.remove(monitor_query_list.first());
+	}
+	*/
 }

@@ -89,7 +89,42 @@ void BulletBodySW::_update_inertia() {
 
 void BulletBodySW::set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata) {
 
-	id=p_id;
+	if (fi_callback) {
+
+		memdelete(fi_callback);
+		fi_callback=NULL;
+	}
+
+	if (p_id!=0) {
+
+		fi_callback=memnew(ForceIntegrationCallback);
+		fi_callback->id=p_id;
+		fi_callback->method=p_method;
+		fi_callback->udata=p_udata;
+	}
+}
+
+void BulletBodySW::call_queries() {
+
+	if (fi_callback) {
+
+		BulletDirectBodyStateSW *dbs = BulletDirectBodyStateSW::singleton;
+		dbs->body=this;
+
+		Variant v=dbs;
+
+		Object *obj = ObjectDB::get_instance(fi_callback->id);
+		if (!obj) {
+
+			set_force_integration_callback(0,StringName());
+		} else {
+			const Variant *vp[2]={&v,&fi_callback->udata};
+
+			Variant::CallError ce;
+			int argc=(fi_callback->udata.get_type()==Variant::NIL)?1:2;
+			obj->call(fi_callback->method,vp,argc,ce);
+		}
+	}
 }
 
 BulletSpaceSW *BulletBodySW::get_space() {
@@ -239,6 +274,13 @@ void BulletBodySW::update_inertias() {
 
 BulletBodySW::BulletBodySW() : inertia_update_list(this) {
 
+	fi_callback=NULL;
+}
+
+BulletBodySW::~BulletBodySW() {
+
+	if (fi_callback)
+		memdelete(fi_callback);
 }
 
 BulletDirectBodyStateSW *BulletDirectBodyStateSW::singleton=NULL;

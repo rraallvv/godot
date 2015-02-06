@@ -864,6 +864,13 @@ void BulletServerSW::flush_queries() {
 	if (!active)
 		return;
 
+	doing_sync=true;
+	for( Set<const BulletSpaceSW*>::Element *E=active_spaces.front();E;E=E->next()) {
+
+		BulletSpaceSW *space=(BulletSpaceSW *)E->get();
+		space->call_queries();
+	}
+	
 }
 
 void BulletServerSW::finish() {
