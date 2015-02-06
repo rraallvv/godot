@@ -240,3 +240,5 @@ void BulletBodySW::update_inertias() {
 BulletBodySW::BulletBodySW() : inertia_update_list(this) {
 
 }
+
+BulletDirectBodyStateSW *BulletDirectBodyStateSW::singleton=NULL;

@@ -818,7 +818,7 @@ void BulletServerSW::init() {
 	//last_step=0.001;
 	//iterations=8;// 8?
 	//stepper = memnew( StepSW );
-	//direct_state = memnew( PhysicsDirectBodyStateSW );
+	direct_state = memnew( BulletDirectBodyStateSW );
 }
 
 void BulletServerSW::step(float p_step) {
@@ -868,6 +868,7 @@ void BulletServerSW::flush_queries() {
 
 void BulletServerSW::finish() {
 
+	memdelete(direct_state);
 }
 
 int BulletServerSW::get_process_info(ProcessInfo p_info) {

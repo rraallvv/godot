@@ -58,6 +58,8 @@ friend class PhysicsDirectSpaceStateSW;
 	int collision_pairs;
 
 	Set<const BulletSpaceSW*> active_spaces;
+
+	BulletDirectBodyStateSW *direct_state;
 	
 	mutable RID_Owner<BulletShapeSW> shape_owner;
 	mutable RID_Owner<BulletBodySW> body_owner;
