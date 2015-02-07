@@ -44,21 +44,21 @@ void BulletBodySW::_set_transform(const Transform& p_transform) {
 	body->getMotionState()->setWorldTransform(transform);
 }
 
-Transform BulletBodySW::_get_transform() const {
+Transform BulletBodySW::get_transform() const {
 
-	btTransform bodyTransform = body->getWorldTransform();
+	btMotionState *motionState = (btDefaultMotionState*) body->getMotionState();
 
-	btVector3 origin = bodyTransform.getOrigin();
-	btMatrix3x3 basis = bodyTransform.getBasis();
+	btTransform btTrans;
+	motionState->getWorldTransform(btTrans);
 
-	Transform transform = Transform();
+	btVector3 origin = btTrans.getOrigin();
+	btMatrix3x3 basis = btTrans.getBasis();
+
+	Transform transform;
 	transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
 	transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
 								basis[1].x(), basis[1].y(), basis[1].z(),
 								basis[2].x(), basis[2].y(), basis[2].z()));
-
-	//if (mode == PhysicsServer::BODY_MODE_RIGID)
-	//	print_line(Vector3(origin.x(), origin.y(), origin.z()));
 
 	return transform;
 }
