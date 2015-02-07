@@ -264,6 +264,9 @@ void BulletBodySW::update_inertias() {
 
 	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
 
+	if (btFuzzyZero(mass))
+		mass = btScalar(0.0f);
+
 	btVector3 inertia;
 	shape->calculateLocalInertia(mass,inertia);
 	body->setMassProps(mass,inertia);

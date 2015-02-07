@@ -137,7 +137,7 @@ public:
 //		body->set_linear_velocity(p_velocity);
 	}
 	virtual Vector3 get_linear_velocity() const {
-		Vector3();
+		return Vector3();
 //		return body->get_linear_velocity();
 	}
 
