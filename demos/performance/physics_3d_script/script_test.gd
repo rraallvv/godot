@@ -10,33 +10,38 @@ var container_shapes=[]
 class VisibleBody:
 	extends TestCube
 	var body = RID()
+	var shape = 0
 
 
 class TrasparentBody:
 	extends Spatial
 	var body = RID()
+	var shape = 0
 
 
 func create_container():
-	create_wall(Vector3(-10,0,0), Vector3(1,11,11))
-	create_wall(Vector3(10,0,0), Vector3(1,11,11))
-	create_wall(Vector3(0,-10,0), Vector3(11,1,11))
-	create_wall(Vector3(0,10,0), Vector3(11,1,11))
-	create_wall(Vector3(0,0,-10), Vector3(11,11,1), true)
-	create_wall(Vector3(0,0,10), Vector3(11,11,1), true)
-
-
-func create_wall(origin, dimensions, transparent=false):
-	var shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_BOX)
-	PhysicsServer.shape_set_data(shape,dimensions) # half extents
+	var body = PhysicsServer.body_create(PhysicsServer.BODY_MODE_RIGID)
+	PhysicsServer.body_set_space(body,get_world().get_space())
+	PhysicsServer.body_set_state(body,PhysicsServer.BODY_STATE_TRANSFORM,Transform())
+	PhysicsServer.body_set_param(body,PhysicsServer.BODY_PARAM_BOUNCE,1.0)
+	PhysicsServer.body_set_param(body,PhysicsServer.BODY_PARAM_MASS,1.0)
 	
-	var cube = RID()
+	create_wall(Vector3(-10,0,0), Vector3(1,11,11), body)
+	create_wall(Vector3(10,0,0), Vector3(1,11,11), body)
+	create_wall(Vector3(0,-10,0), Vector3(11,1,11), body)
+	create_wall(Vector3(0,10,0), Vector3(11,1,11), body)
+	create_wall(Vector3(0,0,-10), Vector3(11,11,1), body, true)
+	create_wall(Vector3(0,0,10), Vector3(11,11,1), body, true)
+
+
+func create_wall(origin, dimensions, body, transparent=false):	
+	var cube
 	if transparent:
 		cube = TrasparentBody.new()
 	else:
 		cube = VisibleBody.new()
-	cube.body = PhysicsServer.body_create(PhysicsServer.BODY_MODE_STATIC)
-	PhysicsServer.body_set_space(cube.body,get_world().get_space())
+	cube.body = body
+	cube.shape = PhysicsServer.body_get_shape_count(cube.body)
 	
 	var trans = Transform()
 	
@@ -44,13 +49,10 @@ func create_wall(origin, dimensions, transparent=false):
 	trans.basis = Matrix3(Vector3(dimensions.x,0,0), Vector3(0,dimensions.y,0), Vector3(0,0,dimensions.z))
 	cube.set_transform(trans)
 	
+	var shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_BOX)
+	PhysicsServer.shape_set_data(shape,dimensions) # half extents
 	PhysicsServer.body_add_shape(cube.body,shape,trans)
 	
-	PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,Transform())
-	
-	PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,0.0)
-	PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,0.0)
-
 	cubes.append(cube)
 	container_shapes.append(shape)
 	add_child(cube)
@@ -73,7 +75,7 @@ func create_matrix(position, shape):
 				cube.set_transform(trans)
 				
 				PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
-				PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,0.0)
+				PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,1.0)
 				PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,0.01)
 				
 				cubes.append(cube)
@@ -83,9 +85,8 @@ func create_matrix(position, shape):
 func _process(delta):
 	for cube in cubes:
 		var trans = PhysicsServer.body_get_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM)
-		for i in range(PhysicsServer.body_get_shape_count(cube.body)):
-			var shape_trans = PhysicsServer.body_get_shape_transform(cube.body, i)
-			cube.set_transform(trans*shape_trans)
+		var shape_trans = PhysicsServer.body_get_shape_transform(cube.body, cube.shape)
+		cube.set_transform(trans*shape_trans)
 
 
 func _ready():
