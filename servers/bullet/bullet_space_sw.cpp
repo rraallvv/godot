@@ -29,6 +29,8 @@
 
 #include "bullet_space_sw.h"
 
+#define SAVE_BULLET
+
 #ifdef SAVE_BULLET
 	#include <fstream>
 	#include <vector>
