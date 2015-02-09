@@ -4,8 +4,8 @@ extends Spatial
 # This demo is an example of creating 3d body physics in GDScript.
 
 var cubes=[]
-var shape
-
+var box_shape
+var container_shapes=[]
 
 class VisibleBody:
 	extends TestCube
@@ -26,7 +26,10 @@ func create_container():
 	create_wall(Vector3(0,0,10), Vector3(11,11,1), true)
 
 
-func create_wall(origin, scale, transparent=false):
+func create_wall(origin, dimensions, transparent=false):
+	var shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_BOX)
+	PhysicsServer.shape_set_data(shape,dimensions) # half extents
+	
 	var cube = RID()
 	if transparent:
 		cube = TrasparentBody.new()
@@ -38,17 +41,19 @@ func create_wall(origin, scale, transparent=false):
 	
 	var trans = Transform()
 	trans.origin = origin
-	trans.basis = Matrix3().scaled(Vector3(1,1,1))
+	trans.basis = Matrix3(Vector3(dimensions.x,0,0), Vector3(0,dimensions.y,0), Vector3(0,0,dimensions.z))
 	cube.set_transform(trans)
 		
 	PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
 	PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,0.0)
-	#PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,1.0)
+	PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,0.0)
+
 	cubes.append(cube)
+	container_shapes.append(shape)
 	add_child(cube)
 
 
-func create_matrix(position):
+func create_matrix(position, shape):
 	var separation = 3.0
 	for i in range(3):
 		for j in range(3):
@@ -61,11 +66,11 @@ func create_matrix(position):
 				var trans = Transform()
 				trans.origin = separation * (Vector3(-1,-1,-1) + Vector3(i, j, k)) + position
 				
-				cube.set_transform(trans)
+				#cube.set_transform(trans)
 				PhysicsServer.body_set_state(cube.body,PhysicsServer.BODY_STATE_TRANSFORM,trans)
 				PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_BOUNCE,0.0)
 				PhysicsServer.body_set_param(cube.body,PhysicsServer.BODY_PARAM_MASS,0.01)
-				
+
 				cubes.append(cube)
 				add_child(cube)
 
@@ -77,11 +82,12 @@ func _process(delta):
 
 
 func _ready():
-	shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_BOX)
-	PhysicsServer.shape_set_data(shape,Vector3(1,1,1)) # half extents
+	box_shape = PhysicsServer.shape_create(PhysicsServer.SHAPE_BOX)
+	PhysicsServer.shape_set_data(box_shape,Vector3(1,1,1)) # half extents
+	
 	create_container()
-	create_matrix(Vector3(-4.5,0,0))
-	create_matrix(Vector3(4.5,0,0))
+	create_matrix(Vector3(-4.5,0,0), box_shape)
+	create_matrix(Vector3(4.5,0,0), box_shape)
 	set_process(true)
 
 
@@ -89,6 +95,9 @@ func _exit_tree():
 	for cube in cubes:
 		PhysicsServer.free_rid(cube.body)
 	
-	PhysicsServer.free_rid(shape)
+	for shape in container_shapes:
+		PhysicsServer.free_rid(shape)
+	
+	PhysicsServer.free_rid(box_shape)
 	
 	cubes.clear()
