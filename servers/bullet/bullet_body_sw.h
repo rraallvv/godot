@@ -45,7 +45,6 @@ class BulletBodySW {
 	SelfList<BulletBodySW> inertia_update_list;
 
 	void _set_transform(const Transform& p_transform);
-	Transform _get_transform() const;
 	void _set_space(BulletSpaceSW *p_space);
 	void _update_inertia();
 
@@ -74,28 +73,10 @@ public:
 	Variant get_state(PhysicsServer::BodyState p_state) const;
 	void update_inertias();
 	void set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata=Variant());
+	void set_mode(PhysicsServer::BodyMode p_mode);
 	Transform get_transform() const;
 
 	void call_queries();
-
-	_FORCE_INLINE_ Transform get_transform() const {
-		btMotionState *motionState = (btDefaultMotionState*) body->getMotionState();
-
-		btTransform btTrans;
-		motionState->getWorldTransform(btTrans);
-
-		btVector3 origin = btTrans.getOrigin();
-		btMatrix3x3 basis = btTrans.getBasis();
-
-		Transform transform;
-
-		transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
-		transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
-									basis[1].x(), basis[1].y(), basis[1].z(),
-									basis[2].x(), basis[2].y(), basis[2].z()));
-
-		return transform;
-	}
 
 	BulletBodySW();
 	~BulletBodySW();
@@ -152,8 +133,7 @@ public:
 	}
 
 	virtual void set_transform(const Transform& p_transform) {
-		return;
-//		body->set_state(PhysicsServer::BODY_STATE_TRANSFORM,p_transform);
+		body->set_state(PhysicsServer::BODY_STATE_TRANSFORM,p_transform);
 	}
 	virtual Transform get_transform() const {
 

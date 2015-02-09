@@ -31,8 +31,12 @@
 #include "bullet_space_sw.h"
 
 void BulletBodySW::_set_transform(const Transform& p_transform) {
+
 	Vector3 origin = p_transform.get_origin();
 	Matrix3 basis = p_transform.get_basis();
+
+	Vector3 scale = basis.get_scale();
+	basis.scale(scale.inverse());
 
 	btTransform transform = btTransform();
 	transform.setOrigin(btVector3(origin.x, origin.y, origin.z));
@@ -40,19 +44,34 @@ void BulletBodySW::_set_transform(const Transform& p_transform) {
 								   basis[1].x, basis[1].y, basis[1].z,
 								   basis[2].x, basis[2].y, basis[2].z));
 
-	body->setWorldTransform(transform);
+	printf(">>>setting transform for body (%p)\n", body);
+
+	body->getCollisionShape()->setLocalScaling(btVector3(btScalar(scale.x), btScalar(scale.y), btScalar(scale.z)));
+
+#if 0
 	body->getMotionState()->setWorldTransform(transform);
+#else
+	body->setWorldTransform(transform);
+#endif
+
+	_update_inertia();
 }
 
 Transform BulletBodySW::get_transform() const {
 
+#if 0
 	btMotionState *motionState = (btDefaultMotionState*) body->getMotionState();
-
 	btTransform btTrans;
 	motionState->getWorldTransform(btTrans);
+#else
+	btTransform btTrans = body->getWorldTransform();
+#endif
 
 	btVector3 origin = btTrans.getOrigin();
 	btMatrix3x3 basis = btTrans.getBasis();
+
+	btVector3 scale = body->getCollisionShape()->getLocalScaling();
+	basis = basis.scaled(scale);
 
 	Transform transform;
 	transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
@@ -102,6 +121,41 @@ void BulletBodySW::set_force_integration_callback(ObjectID p_id,const StringName
 		fi_callback->method=p_method;
 		fi_callback->udata=p_udata;
 	}
+}
+
+void BulletBodySW::set_mode(PhysicsServer::BodyMode p_mode) {
+
+	PhysicsServer::BodyMode prev=mode;
+	mode=p_mode;
+
+	switch(p_mode) {
+			//CLEAR UP EVERYTHING IN CASE IT NOT WORKS!
+		case PhysicsServer::BODY_MODE_STATIC:
+		case PhysicsServer::BODY_MODE_KINEMATIC: {
+/*
+			_set_inv_transform(get_transform().affine_inverse());
+			_inv_mass=0;
+			_set_static(p_mode==PhysicsServer::BODY_MODE_STATIC);
+			//set_active(p_mode==PhysicsServer::BODY_MODE_KINEMATIC);
+			set_active(p_mode==PhysicsServer::BODY_MODE_KINEMATIC && contacts.size());
+			linear_velocity=Vector3();
+			angular_velocity=Vector3();
+			if (mode==PhysicsServer::BODY_MODE_KINEMATIC && prev!=mode) {
+				first_time_kinematic=true;
+			}
+*/
+		} break;
+		case PhysicsServer::BODY_MODE_RIGID:
+		case PhysicsServer::BODY_MODE_CHARACTER: {
+
+			//_inv_mass=mass>0?(1.0/mass):0;
+			//_set_static(false);
+		} break;
+	}
+
+	_update_inertia();
+	//if (get_space())
+	//		_update_queries();
 }
 
 void BulletBodySW::call_queries() {
@@ -164,11 +218,11 @@ void BulletBodySW::set_space(BulletSpaceSW *p_space){
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {
 
-	if (space)
-		space->discreteDynamicsWorld->removeRigidBody(body);
-
 	Vector3 origin = p_transform.get_origin();
 	Matrix3 basis = p_transform.get_basis();
+
+	Vector3 scale = basis.get_scale();
+	basis.scale(scale.inverse());
 
 	btTransform transform = btTransform();
 	transform.setOrigin(btVector3(origin.x, origin.y, origin.z));
@@ -176,33 +230,22 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 								   basis[1].x, basis[1].y, basis[1].z,
 								   basis[2].x, basis[2].y, basis[2].z));
 
+	printf(">>>setting transform for shape (%p)\n", p_shape->shape);
+
 	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
+
+	p_shape->shape->setLocalScaling(btVector3(btScalar(scale.x), btScalar(scale.y), btScalar(scale.z)));
 	shape->addChildShape(transform, p_shape->shape);
 
-	if (space) {
-		if (mode==BulletServerSW::BODY_MODE_RIGID) {
-			mass = btScalar(0.01f);
-			_update_inertia();
-		}
-		space->discreteDynamicsWorld->addRigidBody(body);
-	}
+	_update_inertia();
 }
 
 void BulletBodySW::remove_shape(int p_shape_idx) {
 
-	if (space)
-		space->discreteDynamicsWorld->removeRigidBody(body);
-
 	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
 	shape->removeChildShapeByIndex(p_shape_idx);
 
-	if (space) {
-		if (mode==BulletServerSW::BODY_MODE_RIGID) {
-			mass = btScalar(0.01f);
-			_update_inertia();
-		}
-		space->discreteDynamicsWorld->addRigidBody(body);
-	}
+	_update_inertia();
 }
 
 int BulletBodySW::get_shape_count() {
@@ -242,7 +285,7 @@ Variant BulletBodySW::get_state(PhysicsServer::BodyState p_state) const {
 
 	switch(p_state)	{
 		case PhysicsServer::BODY_STATE_TRANSFORM: {
-			return _get_transform();
+			return get_transform();
 		} break;
 		case PhysicsServer::BODY_STATE_LINEAR_VELOCITY: {
 		} break;
