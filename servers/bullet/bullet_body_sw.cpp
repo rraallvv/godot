@@ -102,6 +102,11 @@ Transform BulletBodySW::get_shape_transform(int p_index) const {
 	return transform;
 }
 
+BulletShapeSW *BulletBodySW::get_shape(int p_index) const {
+	return shapes[p_index];
+}
+
+
 void BulletBodySW::_set_space(BulletSpaceSW *p_space) {
 
 	if (space) {
@@ -238,6 +243,8 @@ void BulletBodySW::set_space(BulletSpaceSW *p_space){
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {
 
+	shapes.push_back(p_shape);
+
 	Vector3 origin = p_transform.get_origin();
 	Matrix3 basis = p_transform.get_basis();
 
@@ -261,6 +268,8 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 }
 
 void BulletBodySW::remove_shape(int p_shape_idx) {
+
+	shapes.remove(p_shape_idx);
 
 	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
 	shape->removeChildShapeByIndex(p_shape_idx);

@@ -57,6 +57,8 @@ class BulletBodySW {
 
 	ForceIntegrationCallback *fi_callback;
 
+	Vector<BulletShapeSW *>shapes;
+
 public:
 
 	PhysicsServer::BodyMode mode;
@@ -76,6 +78,7 @@ public:
 	void set_mode(PhysicsServer::BodyMode p_mode);
 	Transform get_transform() const;
 	Transform get_shape_transform(int p_index) const;
+	BulletShapeSW *get_shape(int p_index) const;
 
 	void call_queries();
 

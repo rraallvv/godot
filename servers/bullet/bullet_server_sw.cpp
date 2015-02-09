@@ -37,8 +37,81 @@ public:
 		m_planeNormal = planeNormal;
 		m_planeConstant = planeConstant;
 	}
+	void getImplicitShapeDimensions(btVector3& planeNormal,btScalar &planeConstant) {
+		planeNormal = m_planeNormal;
+		planeConstant = m_planeConstant;
+	}
 	btPlaneShape(const btVector3& planeNormal,btScalar planeConstant) : btStaticPlaneShape(planeNormal, planeConstant) {}
 };
+
+Variant BulletShapeSW::get_data() const {
+
+	ERR_FAIL_COND_V(!shape, Variant());
+
+	switch (type) {
+		case PhysicsServer::SHAPE_PLANE: {
+			btPlaneShape *btShape = (btPlaneShape *)shape;
+			btVector3 planeNormal;
+			btScalar planeConstant;
+			btShape->getImplicitShapeDimensions(planeNormal, planeConstant);
+			Plane planeData;
+			planeData.normal = Vector3(planeNormal.x(), planeNormal.y(), planeNormal.z());
+			planeData.d = planeConstant;
+			return planeData;
+		}
+			break;
+
+		case PhysicsServer::SHAPE_BOX: {
+			btBoxShape *btShape = (btBoxShape *)shape;
+			btVector3 v = btShape->getLocalScaling();
+			Vector3 halfExtents = Vector3(v.x(), v.y(), v.z());
+			return halfExtents;
+		}
+			break;
+
+		default:
+			break;
+	}
+
+	return Variant();
+}
+
+void BulletShapeSW::set_data(const Variant& p_data) {
+
+	ERR_FAIL_COND(!shape);
+
+	switch (type) {
+		case PhysicsServer::SHAPE_PLANE: {
+			btPlaneShape *btShape = (btPlaneShape *)shape;
+			Plane planeData = p_data;
+			Vector3 planeNormal = planeData.normal;
+			real_t planeConstant = planeData.d;
+			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
+			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
+		}
+			break;
+
+		case PhysicsServer::SHAPE_BOX: {
+			btBoxShape *btShape = (btBoxShape *)shape;
+
+			Vector3 v = p_data;
+			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
+
+			//btShape->setSafeMargin(halfExtents);
+
+			//btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
+			//btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
+			btShape->setLocalScaling(halfExtents);
+			//btShape->setImplicitShapeDimensions(implicitShapeDimensions);
+
+			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
+		}
+			break;
+
+		default:
+			break;
+	}
+}
 
 
 #pragma mark - Shape API
@@ -70,47 +143,18 @@ RID BulletServerSW::shape_create(ShapeType p_shape) {
 	BulletShapeSW *shape = memnew( BulletShapeSW );
 	shape->shape = btShape;
 	shape->type = p_shape;
+
+	RID id = shape_owner.make_rid(shape);
+	shape->set_self(id);
 	
-	return shape_owner.make_rid(shape);
+	return id;
 }
 
 void BulletServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
-	
+
 	BulletShapeSW *shape = shape_owner.get(p_shape);
-
 	ERR_FAIL_COND(!shape);
-
-	switch (shape->type) {
-		case SHAPE_PLANE: {
-			btPlaneShape *btShape = (btPlaneShape *)shape->shape;
-			Plane planeData = p_data;
-			Vector3 planeNormal = planeData.normal;
-			real_t planeConstant = planeData.d;
-			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
-			printf(">>>setting shape data for type %d (%p)\n", shape->type, btShape);
-		}
-			break;
-			
-		case SHAPE_BOX: {
-			btBoxShape *btShape = (btBoxShape *)shape->shape;
-
-			Vector3 v = p_data;
-			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
-
-			//btShape->setSafeMargin(halfExtents);
-
-			//btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
-			//btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
-			btShape->setLocalScaling(halfExtents);
-			//btShape->setImplicitShapeDimensions(implicitShapeDimensions);
-
-			printf(">>>setting shape data for type %d (%p)\n", shape->type, btShape);
-		}
-			break;
-			
-		default:
-			break;
-	}
+	shape->set_data(p_data);
 }
 
 void BulletServerSW::shape_set_custom_solver_bias(RID p_shape, real_t p_bias) {
@@ -124,7 +168,10 @@ PhysicsServer::ShapeType BulletServerSW::shape_get_type(RID p_shape) const {
 
 Variant BulletServerSW::shape_get_data(RID p_shape) const {
 
-	return Variant();
+	const BulletShapeSW *shape = shape_owner.get(p_shape);
+	ERR_FAIL_COND_V(!shape,Variant());
+	//ERR_FAIL_COND_V(!shape->is_configured(),Variant());
+	return shape->get_data();
 }
 
 real_t BulletServerSW::shape_get_custom_solver_bias(RID p_shape) const {
@@ -414,7 +461,13 @@ int BulletServerSW::body_get_shape_count(RID p_body) const {
 
 RID BulletServerSW::body_get_shape(RID p_body, int p_shape_idx) const {
 
-	return RID();
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body,RID());
+
+	BulletShapeSW *shape = body->get_shape(p_shape_idx);
+	ERR_FAIL_COND_V(!shape,RID());
+
+	return shape->get_self();
 }
 
 void BulletServerSW::body_set_shape_as_trigger(RID p_body, int p_shape_idx,bool p_enable) {

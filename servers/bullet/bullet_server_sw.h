@@ -40,6 +40,12 @@ class BulletShapeSW {
 public:
 	PhysicsServer::ShapeType type;
 	btCollisionShape *shape;
+
+	_FORCE_INLINE_ void set_self(const RID& p_self) { self=p_self; }
+	_FORCE_INLINE_ RID get_self() const { return self; }
+
+	Variant get_data() const;
+	void set_data(const Variant& p_data);
 };
 
 
