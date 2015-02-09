@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  bullet_space_sw.h                                                  */
+/*  bullet_shape_sw.cpp                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,59 +26,76 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef BULLET_SPACE_SW
-#define BULLET_SPACE_SW
 
 
-#include "scene/3d/physics_body.h"
-#include "bullet_body_sw.h"
+#include "bullet_shape_sw.h"
 
 
-class BulletBodySW;
+Variant BulletShapeSW::get_data() const {
 
-class BulletSpaceSW {
-	RID self;
+	ERR_FAIL_COND_V(!shape, Variant());
 
-	SelfList<BulletBodySW>::List inertia_update_list;
-
-	class PhysicsBodyHelper : public RigidBody {
-	public:
-		void _update_state(const Transform& p_transform, const Vector3& p_linear_velocity, const Vector3& p_angular_velocity, bool p_is_sleeping) {
-			set_ignore_transform_notification(true);
-			set_global_transform(p_transform);
-			set_linear_velocity(p_linear_velocity);
-			set_angular_velocity(p_angular_velocity);
-			set_sleeping(p_is_sleeping);
-			//if (get_script_instance())
-			//	get_script_instance()->call("_integrate_forces",state);
-			set_ignore_transform_notification(false);
+	switch (type) {
+		case PhysicsServer::SHAPE_PLANE: {
+			btPlaneShape *btShape = (btPlaneShape *)shape;
+			btVector3 planeNormal;
+			btScalar planeConstant;
+			btShape->getImplicitShapeDimensions(planeNormal, planeConstant);
+			Plane planeData;
+			planeData.normal = Vector3(planeNormal.x(), planeNormal.y(), planeNormal.z());
+			planeData.d = planeConstant;
+			return planeData;
 		}
-	};
+			break;
 
-public:
-	btDiscreteDynamicsWorld *discreteDynamicsWorld;
-	btCollisionDispatcher *collisionDispatcher;
-	btDefaultCollisionConfiguration *collisionConfig;
-	btSequentialImpulseConstraintSolver *constraintSolver;
-	btDbvtBroadphase *broadphase;
-	Set<BulletBodySW*> objects;
+		case PhysicsServer::SHAPE_BOX: {
+			btBoxShape *btShape = (btBoxShape *)shape;
+			btVector3 v = btShape->getLocalScaling();
+			Vector3 halfExtents = Vector3(v.x(), v.y(), v.z());
+			return halfExtents;
+		}
+			break;
 
-	void add_object(BulletBodySW *p_object);
-	void remove_object(BulletBodySW *p_object);
+		default:
+			break;
+	}
 
-	void body_add_to_inertia_update_list(SelfList<BulletBodySW>* p_body);
-	void body_remove_from_inertia_update_list(SelfList<BulletBodySW>* p_body);
+	return Variant();
+}
 
-	void sync();
-	void setup();
-	void step(float p_delta,int p_iterations);
+void BulletShapeSW::set_data(const Variant& p_data) {
 
-	void set_param(PhysicsServer::SpaceParameter p_param, real_t p_value);
-	real_t get_param(PhysicsServer::SpaceParameter p_param) const;
+	ERR_FAIL_COND(!shape);
 
-	void call_queries();
-};
+	switch (type) {
+		case PhysicsServer::SHAPE_PLANE: {
+			btPlaneShape *btShape = (btPlaneShape *)shape;
+			Plane planeData = p_data;
+			Vector3 planeNormal = planeData.normal;
+			real_t planeConstant = planeData.d;
+			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
+			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
+		}
+			break;
 
+		case PhysicsServer::SHAPE_BOX: {
+			btBoxShape *btShape = (btBoxShape *)shape;
 
-#endif
+			Vector3 v = p_data;
+			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
 
+			//btShape->setSafeMargin(halfExtents);
+
+			//btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
+			//btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
+			btShape->setLocalScaling(halfExtents);
+			//btShape->setImplicitShapeDimensions(implicitShapeDimensions);
+
+			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
+		}
+			break;
+
+		default:
+			break;
+	}
+}

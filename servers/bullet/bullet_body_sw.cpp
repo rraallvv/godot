@@ -27,8 +27,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "bullet_server_sw.h"
 #include "bullet_space_sw.h"
+#include "bullet_shape_sw.h"
 
 void BulletBodySW::_set_transform(const Transform& p_transform) {
 

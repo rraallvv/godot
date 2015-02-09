@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  bullet_space_sw.h                                                  */
+/*  bullet_shape_sw.h                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,57 +26,38 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef BULLET_SPACE_SW
-#define BULLET_SPACE_SW
+#ifndef BULLET_SHAPE_SW
+#define BULLET_SHAPE_SW
 
 
-#include "scene/3d/physics_body.h"
 #include "bullet_body_sw.h"
 
 
-class BulletBodySW;
-
-class BulletSpaceSW {
-	RID self;
-
-	SelfList<BulletBodySW>::List inertia_update_list;
-
-	class PhysicsBodyHelper : public RigidBody {
-	public:
-		void _update_state(const Transform& p_transform, const Vector3& p_linear_velocity, const Vector3& p_angular_velocity, bool p_is_sleeping) {
-			set_ignore_transform_notification(true);
-			set_global_transform(p_transform);
-			set_linear_velocity(p_linear_velocity);
-			set_angular_velocity(p_angular_velocity);
-			set_sleeping(p_is_sleeping);
-			//if (get_script_instance())
-			//	get_script_instance()->call("_integrate_forces",state);
-			set_ignore_transform_notification(false);
-		}
-	};
-
+class btPlaneShape : public btStaticPlaneShape {
 public:
-	btDiscreteDynamicsWorld *discreteDynamicsWorld;
-	btCollisionDispatcher *collisionDispatcher;
-	btDefaultCollisionConfiguration *collisionConfig;
-	btSequentialImpulseConstraintSolver *constraintSolver;
-	btDbvtBroadphase *broadphase;
-	Set<BulletBodySW*> objects;
+	void setImplicitShapeDimensions(const btVector3& planeNormal,btScalar planeConstant) {
+		m_planeNormal = planeNormal;
+		m_planeConstant = planeConstant;
+	}
+	void getImplicitShapeDimensions(btVector3& planeNormal,btScalar &planeConstant) {
+		planeNormal = m_planeNormal;
+		planeConstant = m_planeConstant;
+	}
+	btPlaneShape(const btVector3& planeNormal,btScalar planeConstant) : btStaticPlaneShape(planeNormal, planeConstant) {}
+};
 
-	void add_object(BulletBodySW *p_object);
-	void remove_object(BulletBodySW *p_object);
 
-	void body_add_to_inertia_update_list(SelfList<BulletBodySW>* p_body);
-	void body_remove_from_inertia_update_list(SelfList<BulletBodySW>* p_body);
+class BulletShapeSW {
+	RID self;
+public:
+	PhysicsServer::ShapeType type;
+	btCollisionShape *shape;
 
-	void sync();
-	void setup();
-	void step(float p_delta,int p_iterations);
+	_FORCE_INLINE_ void set_self(const RID& p_self) { self=p_self; }
+	_FORCE_INLINE_ RID get_self() const { return self; }
 
-	void set_param(PhysicsServer::SpaceParameter p_param, real_t p_value);
-	real_t get_param(PhysicsServer::SpaceParameter p_param) const;
-
-	void call_queries();
+	Variant get_data() const;
+	void set_data(const Variant& p_data);
 };
 
 
