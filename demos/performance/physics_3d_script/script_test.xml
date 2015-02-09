@@ -219,7 +219,7 @@
 				<int> 1048575 </int>
 				<transform> 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -11.5, 0 </transform>
 				<resource  resource_type="Shape" path="local://0">  </resource>
-				<transform> 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.5903, 0 </transform>
+				<transform> 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0 </transform>
 				<vector3> 0, 0, 0 </vector3>
 			</array>
 			<string> "nodes" </string>

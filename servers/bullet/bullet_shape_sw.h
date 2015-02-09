@@ -49,6 +49,12 @@ public:
 
 class BulletShapeSW {
 	RID self;
+
+	Transform xform;
+	Variant data;
+
+	void _update();
+
 public:
 	PhysicsServer::ShapeType type;
 	btCollisionShape *shape;
@@ -58,6 +64,9 @@ public:
 
 	Variant get_data() const;
 	void set_data(const Variant& p_data);
+
+	const Transform& get_transform() const;
+	void set_transform(const Transform& p_data);
 };
 
 

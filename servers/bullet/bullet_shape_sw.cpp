@@ -30,72 +30,63 @@
 
 #include "bullet_shape_sw.h"
 
+void BulletShapeSW::_update() {
 
-Variant BulletShapeSW::get_data() const {
-
-	ERR_FAIL_COND_V(!shape, Variant());
+	Vector3 scale = xform.get_basis().get_scale();
 
 	switch (type) {
 		case PhysicsServer::SHAPE_PLANE: {
+			Plane planeData = data;
+			Vector3 planeNormal = planeData.normal;
+			real_t planeConstant = planeData.d;
+
 			btPlaneShape *btShape = (btPlaneShape *)shape;
-			btVector3 planeNormal;
-			btScalar planeConstant;
-			btShape->getImplicitShapeDimensions(planeNormal, planeConstant);
-			Plane planeData;
-			planeData.normal = Vector3(planeNormal.x(), planeNormal.y(), planeNormal.z());
-			planeData.d = planeConstant;
-			return planeData;
+			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
+
+			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
 		}
 			break;
 
 		case PhysicsServer::SHAPE_BOX: {
+			Vector3 v = data;
+			v *= scale;
+			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
+
 			btBoxShape *btShape = (btBoxShape *)shape;
-			btVector3 v = btShape->getLocalScaling();
-			Vector3 halfExtents = Vector3(v.x(), v.y(), v.z());
-			return halfExtents;
+			btShape->setLocalScaling(halfExtents);
+
+			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
 		}
 			break;
 
 		default:
 			break;
 	}
+}
 
-	return Variant();
+Variant BulletShapeSW::get_data() const {
+
+	return data;
 }
 
 void BulletShapeSW::set_data(const Variant& p_data) {
 
 	ERR_FAIL_COND(!shape);
 
-	switch (type) {
-		case PhysicsServer::SHAPE_PLANE: {
-			btPlaneShape *btShape = (btPlaneShape *)shape;
-			Plane planeData = p_data;
-			Vector3 planeNormal = planeData.normal;
-			real_t planeConstant = planeData.d;
-			btShape->setImplicitShapeDimensions(btVector3(planeNormal.x, planeNormal.y, planeNormal.z), btScalar(planeConstant));
-			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
-		}
-			break;
-
-		case PhysicsServer::SHAPE_BOX: {
-			btBoxShape *btShape = (btBoxShape *)shape;
-
-			Vector3 v = p_data;
-			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
-
-			//btShape->setSafeMargin(halfExtents);
-
-			//btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
-			//btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
-			btShape->setLocalScaling(halfExtents);
-			//btShape->setImplicitShapeDimensions(implicitShapeDimensions);
-
-			printf(">>>setting shape data for type %d (%p)\n", type, btShape);
-		}
-			break;
-
-		default:
-			break;
-	}
+	data = p_data;
+	_update();
 }
+
+const Transform& BulletShapeSW::get_transform() const {
+
+	return xform;
+}
+
+void BulletShapeSW::set_transform(const Transform& p_transform) {
+
+	ERR_FAIL_COND(!shape);
+
+	xform = p_transform;
+	_update();
+}
+

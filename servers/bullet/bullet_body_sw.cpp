@@ -84,25 +84,11 @@ Transform BulletBodySW::get_transform() const {
 
 Transform BulletBodySW::get_shape_transform(int p_index) const {
 
-	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
-	btTransform btTrans = shape->getChildTransform(p_index);
-
-	btVector3 origin = btTrans.getOrigin();
-	btMatrix3x3 basis = btTrans.getBasis();
-
-	btVector3 scale = shape->getChildShape(p_index)->getLocalScaling();
-	basis = basis.scaled(scale);
-
-	Transform transform;
-	transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
-	transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
-								basis[1].x(), basis[1].y(), basis[1].z(),
-								basis[2].x(), basis[2].y(), basis[2].z()));
-
-	return transform;
+	return shapes[p_index]->get_transform();
 }
 
 BulletShapeSW *BulletBodySW::get_shape(int p_index) const {
+
 	return shapes[p_index];
 }
 
@@ -243,13 +229,13 @@ void BulletBodySW::set_space(BulletSpaceSW *p_space){
 
 void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform) {
 
+	p_shape->set_transform(p_transform);
+
 	shapes.push_back(p_shape);
 
 	Vector3 origin = p_transform.get_origin();
 	Matrix3 basis = p_transform.get_basis();
-
-	Vector3 scale = basis.get_scale();
-	basis.scale(scale.inverse());
+	basis.scale(basis.get_scale().inverse());
 
 	btTransform transform = btTransform();
 	transform.setOrigin(btVector3(origin.x, origin.y, origin.z));
@@ -261,7 +247,6 @@ void BulletBodySW::add_shape(BulletShapeSW *p_shape,const Transform& p_transform
 
 	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
 
-	p_shape->shape->setLocalScaling(btVector3(btScalar(scale.x), btScalar(scale.y), btScalar(scale.z)));
 	shape->addChildShape(transform, p_shape->shape);
 
 	_update_inertia();
