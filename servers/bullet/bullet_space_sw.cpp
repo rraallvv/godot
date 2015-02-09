@@ -29,6 +29,10 @@
 
 #include "bullet_space_sw.h"
 
+#ifdef SAVE_BULLET
+	#include <fstream>
+	#include <vector>
+#endif
 
 void BulletSpaceSW::add_object(BulletBodySW *p_object) {
 
@@ -59,6 +63,41 @@ void BulletSpaceSW::step(float p_delta,int p_iterations) {
 	setup();
 
 	discreteDynamicsWorld->stepSimulation(1.f/60, 0);
+
+#ifdef SAVE_BULLET
+	static int steps = 1;
+	if (steps++ == 100) {
+		int maxSerializeBufferSize = 1024*1024*5;
+		btDefaultSerializer*	serializer = new btDefaultSerializer(maxSerializeBufferSize);
+		//serializer->setSerializationFlags(BT_SERIALIZE_NO_DUPLICATE_ASSERT);
+
+		int i=1;
+		std::vector<char*> names;
+		for (Set<BulletBodySW*>::Element *E=objects.front();E;E=E->next()) {
+			BulletBodySW *body = E->get();
+			if (body && body->body) {
+				char *name = (char*)malloc(sizeof(char)*32);
+				sprintf(name, "body%d", i);
+				serializer->registerNameForPointer(body->body,name);
+				names.push_back(name);
+				printf("%s %s %X %X %X\n", name,  body->body->isStaticObject()?"static":"dynamic", body->body->getBroadphaseHandle()->m_collisionFilterGroup, body->body->getBroadphaseHandle()->m_collisionFilterMask,  body->body->getCollisionFlags());
+				i++;
+			}
+		}
+		discreteDynamicsWorld->serialize(serializer);
+		size_t size = serializer->getCurrentBufferSize();
+
+		std::ofstream out("saved.bullet");
+		out.write((char*)serializer->getBufferPointer(), size);
+		out.close();
+
+		printf(">>>saved!\n");
+
+		delete serializer;
+		for (auto name=names.begin(); name!=names.end(); ++name)
+			free(*name);
+	}
+#endif
 }
 
 void BulletSpaceSW::set_param(PhysicsServer::SpaceParameter p_param, real_t p_value) {
