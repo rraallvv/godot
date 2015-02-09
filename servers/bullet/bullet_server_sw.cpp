@@ -97,11 +97,12 @@ void BulletServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
 			Vector3 v = p_data;
 			btVector3 halfExtents = btVector3(v.x, v.y, v.z);
 
-			btShape->setSafeMargin(halfExtents);
+			//btShape->setSafeMargin(halfExtents);
 
-			btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
-			btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
-			btShape->setImplicitShapeDimensions(implicitShapeDimensions);
+			//btVector3 margin(btShape->getMargin(),btShape->getMargin(),btShape->getMargin());
+			//btVector3 implicitShapeDimensions = (halfExtents * btShape->getLocalScaling()) - margin;
+			btShape->setLocalScaling(halfExtents);
+			//btShape->setImplicitShapeDimensions(implicitShapeDimensions);
 
 			printf(">>>setting shape data for type %d (%p)\n", shape->type, btShape);
 		}
@@ -314,9 +315,9 @@ RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 	btScalar mass(0.0f);
 
 	if (p_mode == BODY_MODE_RIGID)
-		mass = btScalar(0.01f);
-	btVector3 localInertia(0.0f, 0.0f, 0.0f);
-	
+		mass = btScalar(1.0f);
+
+	btVector3 localInertia;
 	
 	btCompoundShape* btShape = new btCompoundShape;
 	btShape->calculateLocalInertia(mass,localInertia);
@@ -338,6 +339,7 @@ RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 	BulletBodySW *body = memnew( BulletBodySW );
 	body->body = btBody;
 	body->mode = p_mode;
+	body->mass = mass;
 
 	printf(">>>creating body mode %d (%p)\n", p_mode, btBody);
 
@@ -370,6 +372,10 @@ RID BulletServerSW::body_get_space(RID p_body) const {
 
 void BulletServerSW::body_set_mode(RID p_body, BodyMode p_mode) {
 
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	body->set_mode(p_mode);
 }
 
 PhysicsServer::BodyMode BulletServerSW::body_get_mode(RID p_body, BodyMode p_mode) const {
