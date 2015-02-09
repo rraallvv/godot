@@ -82,6 +82,26 @@ Transform BulletBodySW::get_transform() const {
 	return transform;
 }
 
+Transform BulletBodySW::get_shape_transform(int p_index) const {
+
+	btCompoundShape *shape = (btCompoundShape *)body->getCollisionShape();
+	btTransform btTrans = shape->getChildTransform(p_index);
+
+	btVector3 origin = btTrans.getOrigin();
+	btMatrix3x3 basis = btTrans.getBasis();
+
+	btVector3 scale = shape->getChildShape(p_index)->getLocalScaling();
+	basis = basis.scaled(scale);
+
+	Transform transform;
+	transform.set_origin(Vector3(origin.x(), origin.y(), origin.z()));
+	transform.set_basis(Matrix3(basis[0].x(), basis[0].y(), basis[0].z(),
+								basis[1].x(), basis[1].y(), basis[1].z(),
+								basis[2].x(), basis[2].y(), basis[2].z()));
+
+	return transform;
+}
+
 void BulletBodySW::_set_space(BulletSpaceSW *p_space) {
 
 	if (space) {

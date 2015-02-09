@@ -75,6 +75,7 @@ public:
 	void set_force_integration_callback(ObjectID p_id,const StringName& p_method,const Variant& p_udata=Variant());
 	void set_mode(PhysicsServer::BodyMode p_mode);
 	Transform get_transform() const;
+	Transform get_shape_transform(int p_index) const;
 
 	void call_queries();
 

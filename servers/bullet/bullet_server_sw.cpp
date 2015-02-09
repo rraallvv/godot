@@ -406,7 +406,10 @@ void BulletServerSW::body_set_shape_transform(RID p_body, int p_shape_idx, const
 
 int BulletServerSW::body_get_shape_count(RID p_body) const {
 
-	return -1;
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body,-1);
+
+	return body->get_shape_count();
 }
 
 RID BulletServerSW::body_get_shape(RID p_body, int p_shape_idx) const {
@@ -425,7 +428,10 @@ bool BulletServerSW::body_is_shape_set_as_trigger(RID p_body, int p_shape_idx) c
 
 Transform BulletServerSW::body_get_shape_transform(RID p_body, int p_shape_idx) const {
 
-	return Transform();
+	BulletBodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body,Transform());
+
+	return body->get_shape_transform(p_shape_idx);
 }
 
 void BulletServerSW::body_remove_shape(RID p_body, int p_shape_idx) {
