@@ -63,6 +63,9 @@ public:
 	btDbvtBroadphase *broadphase;
 	Set<BulletBodySW*> objects;
 
+	_FORCE_INLINE_ void set_self(const RID& p_self) { self=p_self; }
+	_FORCE_INLINE_ RID get_self() const { return self; }
+
 	void add_object(BulletBodySW *p_object);
 	void remove_object(BulletBodySW *p_object);
 

@@ -57,6 +57,8 @@ friend class PhysicsDirectSpaceStateSW;
 	mutable RID_Owner<BulletBodySW> body_owner;
 	mutable RID_Owner<BulletSpaceSW> space_owner;
 
+	BulletSpaceSW *shared_space;
+
 //	void _clear_query(QuerySW *p_query);
 public:
 

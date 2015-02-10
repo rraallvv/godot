@@ -108,18 +108,24 @@ real_t BulletServerSW::shape_get_custom_solver_bias(RID p_shape) const {
 RID BulletServerSW::space_create() {
 
 	printf(">>>creating space\n");
+
+	if (shared_space)
+		return shared_space->get_self();
+
+	shared_space = memnew( BulletSpaceSW );
+
+	shared_space->broadphase = new btDbvtBroadphase();
+	shared_space->constraintSolver = new btSequentialImpulseConstraintSolver;
+	shared_space->collisionConfig = new btDefaultCollisionConfiguration();
+	shared_space->collisionDispatcher = new btCollisionDispatcher(shared_space->collisionConfig);
+	shared_space->discreteDynamicsWorld = new btDiscreteDynamicsWorld(shared_space->collisionDispatcher, shared_space->broadphase, shared_space->constraintSolver, shared_space->collisionConfig);
 	
-	BulletSpaceSW *space = memnew( BulletSpaceSW );
-	
-	space->broadphase = new btDbvtBroadphase();
-	space->constraintSolver = new btSequentialImpulseConstraintSolver;
-	space->collisionConfig = new btDefaultCollisionConfiguration();
-	space->collisionDispatcher = new btCollisionDispatcher(space->collisionConfig);
-	space->discreteDynamicsWorld = new btDiscreteDynamicsWorld(space->collisionDispatcher, space->broadphase, space->constraintSolver, space->collisionConfig);
-	
-	space->discreteDynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-	
-	return space_owner.make_rid(space);
+	shared_space->discreteDynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
+
+	RID rid = space_owner.make_rid(shared_space);
+	shared_space->set_self(rid);
+
+	return rid;
 }
 
 void BulletServerSW::space_set_active(RID p_space,bool p_active) {
@@ -878,6 +884,7 @@ BulletServerSW::BulletServerSW() {
 
 	active=true;
 
+	shared_space=NULL;
 }
 
 BulletServerSW::~BulletServerSW() {
