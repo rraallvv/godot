@@ -63,131 +63,131 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/hexamap"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/hexamap"
+			isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "$(PROJECT_DIR)/../../../demos/2d/isometric"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/isometric"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/kinematic_char"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/kinematic_char"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/kinematic_col"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/kinematic_col"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/particles"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/particles"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/platformer"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/platformer"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/polygon_path_finder_demo"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/polygon_path_finder_demo"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/pong"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/pong"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/rubegoldberg"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/rubegoldberg"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/shower_of_bullets"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/shower_of_bullets"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/splash"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/splash"
+            argument = "$(PROJECT_DIR)/../../../demos/2d/tetris"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/2d/tetris"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/fixed_materials"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/fixed_materials"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/kinematic_char"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/kinematic_char"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/mousepick_test"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/mousepick_test"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/navmesh"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/navmesh"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/platformer"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/platformer"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/sat_test"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/sat_test"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/shader_materials"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/shader_materials"
+            argument = "$(PROJECT_DIR)/../../../demos/3d/truck_town"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/3d/truck_town"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/autoload"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/autoload"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/instancing"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/instancing"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/joysticks"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/joysticks"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/pause"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/pause"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/threads"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/threads"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/tween"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/tween"
+            argument = "$(PROJECT_DIR)/../../../demos/misc/udp_chat"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/misc/udp_chat"
+            argument = "$(PROJECT_DIR)/../../../demos/performance/physics_3d"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/performance/physics_3d"
+            argument = "$(PROJECT_DIR)/../../../demos/performance/physics_3d_script"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/performance/physics_3d_script"
+            argument = "$(PROJECT_DIR)/../../../demos/viewport/2d_in_3d"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/viewport/2d_in_3d"
+            argument = "$(PROJECT_DIR)/../../../demos/viewport/3d_in_2d"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/viewport/3d_in_2d"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../godot/demos/viewport/gui_in_3d"
+            argument = "$(PROJECT_DIR)/../../../demos/viewport/gui_in_3d"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
