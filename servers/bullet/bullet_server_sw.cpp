@@ -308,7 +308,8 @@ RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,motionState,btShape,localInertia);
 	
 	btRigidBody* btBody = new btRigidBody(rbInfo);
-	
+	btBody->setActivationState(DISABLE_DEACTIVATION);
+
 	BulletBodySW *body = memnew( BulletBodySW );
 	body->body = btBody;
 	body->mode = p_mode;
