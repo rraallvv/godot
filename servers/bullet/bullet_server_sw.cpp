@@ -858,7 +858,7 @@ void BulletServerSW::step(float p_step) {
 	for( Set<const BulletSpaceSW*>::Element *E=active_spaces.front();E;E=E->next()) {
 
 		BulletSpaceSW *space = (BulletSpaceSW*)E->get();
-		space->step(1.f/60, 0);
+		space->step(p_step, 1);
 		//island_count+=E->get()->get_island_count();
 		//active_objects+=E->get()->get_active_objects();
 		//collision_pairs+=E->get()->get_collision_pairs();

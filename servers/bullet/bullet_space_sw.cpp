@@ -64,7 +64,7 @@ void BulletSpaceSW::step(float p_delta,int p_iterations) {
 
 	setup();
 
-	discreteDynamicsWorld->stepSimulation(1.f/60, 0);
+	discreteDynamicsWorld->stepSimulation(p_delta, 0);
 
 #ifdef SAVE_BULLET
 	static int steps = 1;
