@@ -30,6 +30,7 @@
 #include "bullet_server_sw.h"
 #include "bullet_space_sw.h"
 #include "bullet_shape_sw.h"
+#include "bullet_joint_sw.h"
 
 
 #pragma mark - Shape API
@@ -645,7 +646,32 @@ Vector3 BulletServerSW::pin_joint_get_local_B(RID p_joint) const{
 
 RID BulletServerSW::joint_create_hinge(RID p_body_A,const Transform& p_frame_A,RID p_body_B,const Transform& p_frame_B) {
 
-	return RID();
+	BulletBodySW *body_A = body_owner.get(p_body_A);
+	ERR_FAIL_COND_V(!body_A,RID());
+
+/*
+	if (!p_body_B.is_valid()) {
+		ERR_FAIL_COND_V(!body_A->get_space(),RID());
+		p_body_B=body_A->get_space()->get_static_global_body();
+	}
+
+	BulletBodySW *body_B = body_owner.get(p_body_B);
+	ERR_FAIL_COND_V(!body_B,RID());
+
+	ERR_FAIL_COND_V(body_A==body_B,RID());
+*/
+
+	BulletJointSW *joint = memnew( BulletJointSW );
+	btHingeConstraint *btJoint = new btHingeConstraint(*body_A->body, btVector3(0.0f, 0.0f, 0.0f),  btVector3(0.0f, 0.0f, 1.0f));
+	joint->joint = btJoint;
+
+	btJoint->enableAngularMotor(true, -4.0f*M_PI/60.0f, 1024.0f);
+	shared_space->discreteDynamicsWorld->addConstraint(btJoint);
+
+	RID id = joint_owner.make_rid(joint);
+	joint->set_self(id);
+
+	return id;
 }
 
 RID BulletServerSW::joint_create_hinge_simple(RID p_body_A,const Vector3& p_pivot_A,const Vector3& p_axis_A,RID p_body_B,const Vector3& p_pivot_B,const Vector3& p_axis_B) {

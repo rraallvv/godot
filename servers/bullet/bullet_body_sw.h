@@ -38,6 +38,7 @@
 
 class BulletSpaceSW;
 class BulletShapeSW;
+class BulletJointSW;
 
 class BulletBodySW {
 	RID self;

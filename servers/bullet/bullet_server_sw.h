@@ -56,6 +56,7 @@ friend class PhysicsDirectSpaceStateSW;
 	mutable RID_Owner<BulletShapeSW> shape_owner;
 	mutable RID_Owner<BulletBodySW> body_owner;
 	mutable RID_Owner<BulletSpaceSW> space_owner;
+	mutable RID_Owner<BulletJointSW> joint_owner;
 
 	BulletSpaceSW *shared_space;
 
