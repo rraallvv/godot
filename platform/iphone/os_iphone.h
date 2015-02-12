@@ -31,7 +31,7 @@
 #ifndef OS_IPHONE_H
 #define OS_IPHONE_H
 
-#define USE_BULLET_SERVER
+//#define USE_BULLET_SERVER
 
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"

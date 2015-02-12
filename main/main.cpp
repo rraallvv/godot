@@ -1308,8 +1308,25 @@ bool Main::iteration() {
 
 	float frame_slice=1.0/OS::get_singleton()->get_iterations_per_second();
 
+#ifdef CATCH_UP_SIMULATION
+	// Drop this numbers of interation steps to avoid the spiral of death
+	static int dropped_steps = 8;
+	// Size of the frame slice, make this bigger if we already have dropped too many steps trying to catch up
+	static int frame_slice_multiplier = 1;
+
+	frame_slice *= frame_slice_multiplier;
+	if (step>frame_slice*dropped_steps) {
+		step=frame_slice*dropped_steps;
+		print_line(itos(dropped_steps)+" steps where dropped with x"+itos(frame_slice_multiplier)+" slice multiplier");
+		if (dropped_steps > 1)
+			dropped_steps--;
+		else
+			frame_slice_multiplier++;
+	}
+#else
 	if (step>frame_slice*8)
 		step=frame_slice*8;
+#endif
 
 	time_accum+=step;
 
