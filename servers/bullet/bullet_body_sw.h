@@ -66,6 +66,9 @@ public:
 	btRigidBody *body;
 	btScalar mass;
 
+	_FORCE_INLINE_ void set_self(const RID& p_self) { self=p_self; }
+	_FORCE_INLINE_ RID get_self() const { return self; }
+
 	BulletSpaceSW *get_space();
 	void set_space(BulletSpaceSW *p_space);
 	void add_shape(BulletShapeSW *p_shape,const Transform& p_transform);

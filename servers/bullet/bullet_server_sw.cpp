@@ -122,10 +122,10 @@ RID BulletServerSW::space_create() {
 	
 	shared_space->discreteDynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
 
-	RID rid = space_owner.make_rid(shared_space);
-	shared_space->set_self(rid);
+	RID id = space_owner.make_rid(shared_space);
+	shared_space->set_self(id);
 
-	return rid;
+	return id;
 }
 
 void BulletServerSW::space_set_active(RID p_space,bool p_active) {
@@ -297,7 +297,8 @@ RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 	shape->shape = btShape;
 	shape->type = SHAPE_CUSTOM;
 	
-	shape_owner.make_rid(shape);
+	RID sid = shape_owner.make_rid(shape);
+	shape->set_self(sid);
 	
 	
 	btTransform transform = btTransform::getIdentity();
@@ -314,7 +315,10 @@ RID BulletServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 
 	printf(">>>creating body mode %d (%p)\n", p_mode, btBody);
 
-	return body_owner.make_rid(body);
+	RID bid = body_owner.make_rid(body);
+	body->set_self(bid);
+
+	return bid;
 }
 
 void BulletServerSW::body_set_space(RID p_body, RID p_space) {
