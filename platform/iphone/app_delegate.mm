@@ -207,7 +207,8 @@ static int frame_count = 0;
 	view_controller.view = glView;
 	window.rootViewController = view_controller;
 
-	glView.animationInterval = 1.0 / kRenderingFrequency;
+	//glView.animationInterval = 1.0 / kRenderingFrequency;
+	glView.animationInterval = 1.0 / OS::get_singleton()->get_iterations_per_second();
 	[glView startAnimation];
 	
 	//Show the window
