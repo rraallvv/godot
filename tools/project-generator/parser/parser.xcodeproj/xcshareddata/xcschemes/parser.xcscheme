@@ -63,16 +63,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "i=$(PROJECT_DIR)/../ios.txt p=ios"
+            argument = "i=$(PROJECT_DIR)/../ios.txt p=ios d=$(PROJECT_DIR)/../../../demos"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "g=yes"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "d=$(PROJECT_DIR)/../../../demos"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "r=resources"
