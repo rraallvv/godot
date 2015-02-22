@@ -322,6 +322,8 @@ class PBXFileReference(XcodeProjectObject):
 			self.sourceTree = "BUILT_PRODUCTS_DIR"
 			self.includeInIndex = 0
 		else:
+			if os.path.isdir(path):
+				self.lastKnownFileType = "folder"
 			self.sourceTree = "SOURCE_ROOT"
 #		else:
 #			raise Exception("Unknown extension:" + extension)
@@ -511,6 +513,9 @@ class XcodeObjects(XcodeProjectSectionObject):
 		resource_filenames = []
 		for resource_filename in project.settings.resource_filenames():
 			filename = os.path.basename(resource_filename)
+			if not filename:
+				resource_filenames.append(os.path.dirname(resource_filename))
+				continue
 			if filename[0] == ".":
 				continue
 			resource_filenames.append(resource_filename)
@@ -550,7 +555,9 @@ class XcodeObjects(XcodeProjectSectionObject):
 		header_build_files.sort(key=lambda header_build_files: header_build_files.fileRef.path, reverse=False)
 		self.headers_build_phase = object_factory.create(PBXHeadersBuildPhase, header_build_files)
 
-		resource_build_files = self.all_resource_build_files(project)
+		# resource_build_files = self.all_resource_build_files(project)
+		extensions = ["plist"]
+		resource_build_files = self.build_files_in_list_without_extensions(resource_filenames, extensions)
 		resource_build_files.sort(key=lambda resource_build_files: resource_build_files.fileRef.path, reverse=False)
 		self.resources_build_phase = object_factory.create(PBXResourcesBuildPhase, resource_build_files)
 
@@ -879,6 +886,17 @@ class XcodeObjects(XcodeProjectSectionObject):
 			if extension in extensions_to_match:
 				matching_file_references.append(file_reference)
 		return matching_file_references
+
+	def build_files_in_list_without_extensions(self, filenames, extensions):
+		build_files = []
+		for build_file in self.build_files:
+			filename = build_file.fileRef.path
+			extension = os.path.splitext(filename)[1][1:]
+			if extensions and (extension in extensions):
+				continue
+			if filename in filenames:
+				build_files.append(build_file)
+		return build_files
 
 	def build_files_with_extensions(self, extensions_to_match):
 		matching_build_files = []

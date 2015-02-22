@@ -83,7 +83,7 @@ def create_project(filename, target_path, platform_string, data_path, resource_p
 		if data_path:
 			resource_root = os.path.normpath(data_path) + "/"
 			# print("data:", resource_root)
-			target_project.settings.add_resource_directory(resource_root, True, [])
+			target_project.settings.add_resource_directory(resource_root, False, [])
 
 		if resource_path:
 			resource_root = os.path.normpath(resource_path) + "/" + platform_string + "/"

@@ -128,7 +128,7 @@ class Settings(object):
 		if recursive:
 			self.root_resource_files.search_recursive(absolute_path, extensions, exclude_list)
 		else:
-			self.root_resource_files.search_directory_only(absolute_path, extensions, exclude_list)
+			self.root_resource_files.search_filename(absolute_path)
 
 	def resource_filenames(self):
 		return self.root_resource_files.source_filenames()
