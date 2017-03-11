@@ -4572,24 +4572,35 @@ void EditorNode::_start_dimming(bool p_dimming) {
 	_dimming = p_dimming;
 	_dim_time = 0.0f;
 	_dim_timer->start();
+	if (_dimming) {
+		dim_overlay->set_visible(true);
+	}
 }
 
 void EditorNode::_dim_timeout() {
 
 	_dim_time += _dim_timer->get_wait_time();
-	float wait_time = EditorSettings::get_singleton()->get("interface/editor/dim_transition_time");
+	float wait_time = _dimming ? (float)EditorSettings::get_singleton()->get("interface/editor/dim_transition_time") : 0;
 
-	float c = 1.0f - (float)EditorSettings::get_singleton()->get("interface/editor/dim_amount");
-
-	Color base = _dimming ? Color(1, 1, 1) : Color(c, c, c);
-	Color final = _dimming ? Color(c, c, c) : Color(1, 1, 1);
+	Color base = _dimming ? Color(1, 1, 1, 0) : Color(1, 1, 1, 1);
+	Color final = _dimming ? Color(1, 1, 1, 1) : Color(1, 1, 1, 0);
 
 	if (_dim_time + _dim_timer->get_wait_time() >= wait_time) {
-		gui_base->set_modulate(final);
+		dim_overlay->set_modulate(final);
 		_dim_timer->stop();
+		if (!_dimming) {
+			dim_overlay->set_visible(false);
+		}
 	} else {
-		gui_base->set_modulate(base.linear_interpolate(final, _dim_time / wait_time));
+		dim_overlay->set_modulate(base.linear_interpolate(final, _dim_time / wait_time));
 	}
+}
+
+void EditorNode::_dim_draw() {
+	Size2 s = dim_overlay->get_size();
+	Rect2 r(0, 0, s.width, s.height);
+	Color c = EditorSettings::get_singleton()->get("interface/theme/dim_color");
+	dim_overlay->draw_rect(r, c);
 }
 
 void EditorNode::open_export_template_manager() {
@@ -4659,6 +4670,8 @@ void EditorNode::_bind_methods() {
 	ClassDB::bind_method("_dock_popup_exit", &EditorNode::_dock_popup_exit);
 	ClassDB::bind_method("_dock_move_left", &EditorNode::_dock_move_left);
 	ClassDB::bind_method("_dock_move_right", &EditorNode::_dock_move_right);
+
+	ClassDB::bind_method("_dim_draw", &EditorNode::_dim_draw);
 
 	ClassDB::bind_method("_layout_menu_option", &EditorNode::_layout_menu_option);
 
@@ -4862,6 +4875,14 @@ EditorNode::EditorNode() {
 	gui_base = memnew(Panel);
 	theme_base->add_child(gui_base);
 	gui_base->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+
+	dim_overlay = memnew(Control);
+	dim_overlay->set_modulate(Color(0, 0, 0, 0));
+	dim_overlay->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
+	dim_overlay->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	dim_overlay->set_visible(false);
+	dim_overlay->connect("draw", this, "_dim_draw");
+	theme_base->add_child(dim_overlay);
 
 	Ref<Theme> theme = create_custom_theme();
 	theme_base->set_theme(theme);

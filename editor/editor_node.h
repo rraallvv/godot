@@ -204,6 +204,7 @@ private:
 	PanelContainer *scene_root_parent;
 	Control *theme_base;
 	Control *gui_base;
+	Control *dim_overlay;
 	VBoxContainer *main_vbox;
 	PanelContainer *play_button_panel;
 
@@ -555,6 +556,7 @@ private:
 	void _reposition_active_tab(int idx_to);
 	void _thumbnail_done(const String &p_path, const Ref<Texture> &p_preview, const Variant &p_udata);
 	void _scene_tab_script_edited(int p_tab);
+	void _dim_draw();
 
 	Dictionary _get_main_scene_state();
 	void _set_main_scene_state(Dictionary p_state, Node *p_for_scene);
