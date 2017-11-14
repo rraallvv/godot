@@ -574,7 +574,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			//LOG
 
 			if (EditorNode::get_log()->is_hidden()) {
-				if (EditorNode::get_singleton()->are_bottom_panels_hidden()) {
+				if (EditorNode::get_singleton()->are_bottom_panels_hidden() && bool(EDITOR_DEF("run/always_open_output_on_play", true))) {
 					EditorNode::get_singleton()->make_bottom_panel_item_visible(EditorNode::get_log());
 				}
 			}
