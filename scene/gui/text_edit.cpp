@@ -571,10 +571,13 @@ void TextEdit::_notification(int p_what) {
 			}
 			_update_scrollbars();
 
+			int char_w = cache.font->get_char_size(' ').width;
+
 			RID ci = get_canvas_item();
 			VisualServer::get_singleton()->canvas_item_set_clip(get_canvas_item(), true);
 			int xmargin_beg = cache.style_normal->get_margin(MARGIN_LEFT) + cache.line_number_w + cache.breakpoint_gutter_width;
-			int xmargin_end = cache.size.width - cache.style_normal->get_margin(MARGIN_RIGHT);
+			//int xmargin_end = cache.size.width - cache.style_normal->get_margin(MARGIN_RIGHT);
+			int xmargin_end = cache.size.width + char_w;
 			//let's do it easy for now:
 			cache.style_normal->draw(ci, Rect2(Point2(), cache.size));
 			if (has_focus())
@@ -582,7 +585,14 @@ void TextEdit::_notification(int p_what) {
 
 			int ascent = cache.font->get_ascent();
 
-			int visible_rows = get_visible_rows() + 1;
+			int inter_ofs = (v_scroll->get_value() - cursor.line_ofs) * get_row_height();
+
+			int visible_rows = get_visible_rows();
+			visible_rows += 1;
+
+			//add extra line if visible lines minus offset is not enough to cover viewport area
+			if (visible_rows * get_row_height() - inter_ofs < cache.size.height && smooth_scroll_enabled)
+				visible_rows += 1;
 
 			int tab_w = cache.font->get_char_size(' ').width * indent_size;
 
@@ -794,7 +804,7 @@ void TextEdit::_notification(int p_what) {
 				int char_ofs = 0;
 				int ofs_y = (i * get_row_height() + cache.line_spacing / 2);
 				if (smooth_scroll_enabled) {
-					ofs_y -= (v_scroll->get_value() - cursor.line_ofs) * get_row_height();
+					ofs_y -= inter_ofs;
 				}
 
 				bool prev_is_char = false;
@@ -1741,7 +1751,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				}
 
 				if (smooth_scroll_enabled) {
-					int max_v_scroll = get_line_count() - 1;
+					float max_v_scroll = get_line_count() - 1;
 					if (!scroll_past_end_of_file_enabled) {
 						max_v_scroll -= get_visible_rows() - 1;
 					}
@@ -3280,10 +3290,12 @@ Size2 TextEdit::get_minimum_size() const {
 
 	return cache.style_normal->get_minimum_size();
 }
-int TextEdit::get_visible_rows() const {
+float TextEdit::get_visible_rows() const {
 
-	int total = cache.size.height;
+	float total = cache.size.height;
 	total -= cache.style_normal->get_minimum_size().height;
+	if (h_scroll->is_visible_in_tree())
+		total -= h_scroll->get_combined_minimum_size().height;
 	total /= get_row_height();
 	return total;
 }
@@ -3300,19 +3312,36 @@ void TextEdit::adjust_viewport_to_cursor() {
 
 	//printf("rowofs %i, visrows %i, cursor.line %i\n",cursor.line_ofs,get_visible_rows(),cursor.line);
 
-	int visible_rows = get_visible_rows();
-	if (h_scroll->is_visible_in_tree())
-		visible_rows -= ((h_scroll->get_combined_minimum_size().height - 1) / get_row_height());
+	float visible_rows = get_visible_rows();
 
-	if (cursor.line >= (cursor.line_ofs + visible_rows))
-		cursor.line_ofs = cursor.line - visible_rows;
-	if (cursor.line < cursor.line_ofs)
-		cursor.line_ofs = cursor.line;
-
-	if (cursor.line_ofs + visible_rows > text.size() && !scroll_past_end_of_file_enabled) {
-		cursor.line_ofs = text.size() - visible_rows;
-		v_scroll->set_value(text.size() - visible_rows);
+	if (smooth_scroll_enabled) {
+		if (cursor.line + 1 > (v_scroll->get_value() + visible_rows)) {
+			cursor.line_ofs = cursor.line + 1 - visible_rows;
+			v_scroll->set_value(cursor.line + 1 - visible_rows);
+		}
+	} else {
+		if (cursor.line + 1 > (cursor.line_ofs + visible_rows)) {
+			cursor.line_ofs = cursor.line + 1 - (int)visible_rows;
+			v_scroll->set_value(cursor.line + 1 - (int)visible_rows);
+		}
 	}
+
+	if (smooth_scroll_enabled) {
+		if (cursor.line <= v_scroll->get_value()) {
+			cursor.line_ofs = cursor.line;
+			v_scroll->set_value(cursor.line_ofs);
+		}
+	} else {
+		if (cursor.line <= cursor.line_ofs) {
+			cursor.line_ofs = cursor.line;
+			v_scroll->set_value(cursor.line);
+		}
+	}
+
+	//if (cursor.line_ofs + visible_rows > text.size() && !scroll_past_end_of_file_enabled) {
+	//	cursor.line_ofs = text.size() - visible_rows;
+	//	v_scroll->set_value(cursor.line_ofs);
+	//}
 
 	int cursor_x = get_column_x_offset(cursor.column, text[cursor.line]);
 

@@ -295,7 +295,7 @@ class TextEdit : public Control {
 
 	bool context_menu_enabled;
 
-	int get_visible_rows() const;
+	float get_visible_rows() const;
 
 	int get_char_count();
 
