@@ -10,6 +10,8 @@ def make_editor_icons_action(target, source, env):
     dst = target[0].srcnode().abspath
     pixmaps = source
 
+    theme_data_file = "scene/resources/default_theme/theme_data.h"
+
     s = StringIO()
 
     s.write("#include \"editor_icons.h\"\n\n")
@@ -18,32 +20,27 @@ def make_editor_icons_action(target, source, env):
 
     hidpi_list = []
 
+    theme_data = None
+    try:
+        f = open(env.File("#" + theme_data_file).abspath, "r")
+        theme_data = f.read()
+        f.close()
+
+        s.write("#include \"" + theme_data_file + "\"\n\n")
+
+    except:
+        theme_data = ""
+
     for x in pixmaps:
 
         x = str(x)
         var_str = os.path.basename(x)[:-4] + "_png"
         # print(var_str)
 
-        s.write("static const unsigned char " + var_str + "[]={\n")
-
-        pngf = open(x, "rb")
-
-        b = pngf.read(1)
-        while(len(b) == 1):
-            s.write(hex(ord(b)))
-            b = pngf.read(1)
-            if (len(b) == 1):
-                s.write(",")
-
-        s.write("\n};\n\n")
-
-        pngf.close()
-        var_str = os.path.basename(x)[:-4] + "_hidpi_png"
-        try:
-
-            pngf = open(os.path.dirname(x) + "/2x/" + os.path.basename(x), "rb")
-
+        if var_str not in theme_data:
             s.write("static const unsigned char " + var_str + "[]={\n")
+
+            pngf = open(x, "rb")
 
             b = pngf.read(1)
             while(len(b) == 1):
@@ -52,11 +49,31 @@ def make_editor_icons_action(target, source, env):
                 if (len(b) == 1):
                     s.write(",")
 
-            s.write("\n};\n\n\n")
-            hidpi_list.append(x)
+            s.write("\n};\n\n")
 
-        except:
-            s.write("static const unsigned char* " + var_str + "=NULL;\n\n\n")
+            pngf.close()
+
+        var_str = os.path.basename(x)[:-4] + "_hidpi_png"
+
+        if var_str not in theme_data:
+            try:
+
+                pngf = open(os.path.dirname(x) + "/2x/" + os.path.basename(x), "rb")
+
+                s.write("static const unsigned char " + var_str + "[]={\n")
+
+                b = pngf.read(1)
+                while(len(b) == 1):
+                    s.write(hex(ord(b)))
+                    b = pngf.read(1)
+                    if (len(b) == 1):
+                        s.write(",")
+
+                s.write("\n};\n\n\n")
+                hidpi_list.append(x)
+
+            except:
+                s.write("static const unsigned char *" + var_str + "=NULL;\n\n\n")
 
     s.write("static Ref<ImageTexture> make_icon(const uint8_t* p_png,const uint8_t* p_hidpi_png) {\n")
     s.write("\tRef<ImageTexture> texture( memnew( ImageTexture ) );\n")

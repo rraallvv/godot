@@ -403,6 +403,10 @@ if selected_platform in platform_list:
         CacheDir(scons_cache_path)
         print("Scons cache enabled... (path: '" + scons_cache_path + "')")
 
+    env["unity_build"] = os.environ.get("UNITY_BUILD") == "yes"
+    if env["unity_build"]:
+        print("Unity build enabled")
+
     Export('env')
 
     # build subdirs, the build order is dependent on link order.

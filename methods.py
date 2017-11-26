@@ -1,22 +1,152 @@
 import os
 from compat import iteritems
 
+# These folders won't be included in the unity build
+exclude_folder = {
+    "osx": (
+        "thirdparty/b2d_convexdecomp/",
+        "thirdparty/jpeg-compressor/",
+        "thirdparty/libmpcdec/",
+        "thirdparty/libtheora/",
+        "thirdparty/libvorbis/",
+        "thirdparty/libwebp/",
+        "thirdparty/misc/",
+        "thirdparty/openssl/",
+        "thirdparty/opus/",
+        "thirdparty/pvrtccompressor/",
+        "thirdparty/rg-etc1/",
+        "thirdparty/speex/",
+        "thirdparty/squish/",
+        "thirdparty/zlib/",
+    ),
+    "iphone": (
+        "thirdparty/jpeg-compressor/",
+        "thirdparty/libmpcdec/",
+        "thirdparty/libtheora/",
+        "thirdparty/libvorbis/",
+        "thirdparty/libwebp/",
+        "thirdparty/misc/",
+        "thirdparty/openssl/",
+        "thirdparty/opus/",
+        "thirdparty/pvrtccompressor/",
+        "thirdparty/rg-etc1/",
+        "thirdparty/speex/",
+        "thirdparty/zlib/",
+    ),
+    "android": (
+        "modules/gridmap/",
+        "thirdparty/jpeg-compressor/",
+        "thirdparty/libmpcdec/",
+        "thirdparty/libtheora/",
+        "thirdparty/libvorbis/",
+        "thirdparty/libwebp/",
+        "thirdparty/misc/",
+        "thirdparty/openssl/",
+        "thirdparty/opus/",
+        "thirdparty/pvrtccompressor/",
+        "thirdparty/rg-etc1/",
+        "thirdparty/speex/",
+        "thirdparty/zlib/",
+    ),
+    "x11": (
+        "thirdparty/b2d_convexdecomp/",
+        "thirdparty/jpeg-compressor/",
+        "thirdparty/libmpcdec/",
+        "thirdparty/libtheora/",
+        "thirdparty/libvorbis/",
+        "thirdparty/libwebp/",
+        "thirdparty/misc/",
+        "thirdparty/openssl/",
+        "thirdparty/opus/",
+        "thirdparty/pvrtccompressor/",
+        "thirdparty/rg-etc1/",
+        "thirdparty/speex/",
+        "thirdparty/squish/",
+    ),
+    "windows": (
+        "drivers/windows/",
+        "editor/plugins/",
+        "thirdparty/b2d_convexdecomp/",
+        "thirdparty/jpeg-compressor/",
+        "thirdparty/libmpcdec/",
+        "thirdparty/libtheora/",
+        "thirdparty/libvorbis/",
+        "thirdparty/libwebp/",
+        "thirdparty/misc/",
+        "thirdparty/openssl/",
+        "thirdparty/pvrtccompressor/",
+        "thirdparty/rg-etc1/",
+        "thirdparty/rtaudio/",
+        "thirdparty/speex/",
+        "thirdparty/squish/",
+        "thirdparty/zlib/",
+    )
+}
+
+
+def add_sources_list(self, sources, filelist):
+    import re
+
+    unity_build = self["unity_build"]
+
+    exclude = exclude_folder.get(self["platform"])
+
+    master_cpp = None
+    master_c = None
+
+    filename_cpp = "master_cpp.gen.cpp"
+    filename_c = "master_c.gen.c"
+
+    for i in range(0, len(filelist)):
+        f = filelist[i]
+
+        if filename_cpp in f:
+            continue
+
+        if filename_c in f:
+            continue
+
+        if f.startswith(self.Dir("#").abspath):
+            f = f.replace(self.Dir("#").abspath + os.sep, "#")
+
+        if os.sep != "/":
+            f = f.replace(os.sep, "/")
+
+        if not (unity_build and (exclude == None or not re.sub(r"^#", "", f).startswith(exclude))):
+            sources.append(self.Object(f))
+
+        elif f.endswith('.cpp'):
+            if not master_cpp:
+                master_cpp = open(filename_cpp, "w")
+            master_cpp.write("#include \"" + self.File(f).abspath + "\"\n")
+
+        elif f.endswith('.c'):
+            if not master_c:
+                master_c = open(filename_c, "w")
+            master_c.write("#include \"" + self.File(f).abspath + "\"\n")
+
+        else:
+            sources.append(self.Object(f))
+
+    if master_cpp:
+        master_cpp.close()
+        sources.append(self.Object("./" + filename_cpp))
+
+    if master_c:
+        master_c.close()
+        sources.append(self.Object("./" + filename_c))
+
 
 def add_source_files(self, sources, filetype, lib_env=None, shared=False):
     import glob
-    import string
-    # if not lib_objects:
     if not lib_env:
         lib_env = self
     if type(filetype) == type(""):
-
         dir = self.Dir('.').abspath
         list = glob.glob(dir + "/" + filetype)
-        for f in list:
-            sources.append(self.Object(f))
+        add_sources_list(self, sources, list)
     else:
-        for f in filetype:
-            sources.append(self.Object(f))
+        add_sources_list(self, sources, filetype)
 
 
 def build_shader_header(target, source, env):

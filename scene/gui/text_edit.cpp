@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "text_edit.h"
+#include "core/char_utils.h"
 #include "os/input.h"
 #include "os/keyboard.h"
 #include "os/os.h"
@@ -37,11 +38,6 @@
 #include "message_queue.h"
 
 #define TAB_PIXELS
-
-static bool _is_text_char(CharType c) {
-
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-}
 
 static bool _is_symbol(CharType c) {
 

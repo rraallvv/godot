@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "shader_language.h"
+#include "core/char_utils.h"
 #include "os/os.h"
 #include "print_string.h"
-static bool _is_text_char(CharType c) {
-
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-}
 
 static bool _is_number(CharType c) {
 

@@ -297,7 +297,7 @@ static Image _lossless_unpack_png(const DVector<uint8_t> &p_data) {
 	return _load_mem_png(&r[4], len - 4);
 }
 
-static void _write_png_data(png_structp png_ptr, png_bytep data, png_size_t p_length) {
+static void _write_png_mem_data(png_structp png_ptr, png_bytep data, png_size_t p_length) {
 
 	DVector<uint8_t> &v = *(DVector<uint8_t> *)png_get_io_ptr(png_ptr);
 	int vs = v.size();
@@ -338,7 +338,7 @@ static DVector<uint8_t> _lossless_pack_png(const Image &p_image) {
 	ret.push_back('G');
 	ret.push_back(' ');
 
-	png_set_write_fn(png_ptr, &ret, _write_png_data, NULL);
+	png_set_write_fn(png_ptr, &ret, _write_png_mem_data, NULL);
 
 	/* write header */
 	if (setjmp(png_jmpbuf(png_ptr))) {

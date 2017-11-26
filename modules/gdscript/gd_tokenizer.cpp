@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "gd_tokenizer.h"
+#include "core/char_utils.h"
 #include "gd_functions.h"
 #include "io/marshalls.h"
 #include "map.h"
@@ -124,11 +125,6 @@ const char *GDTokenizer::get_token_name(Token p_token) {
 
 	ERR_FAIL_INDEX_V(p_token, TK_MAX, "<error>");
 	return token_names[p_token];
-}
-
-static bool _is_text_char(CharType c) {
-
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
 }
 
 static bool _is_number(CharType c) {

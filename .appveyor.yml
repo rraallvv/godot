@@ -11,6 +11,13 @@ environment:
       TOOLS: yes
       TARGET: release_debug
       ARCH: amd64
+      UNITY_BUILD: yes
+    - VS: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
+      GD_PLATFORM: windows
+      TOOLS: yes
+      TARGET: release_debug
+      ARCH: amd64
+      UNITY_BUILD: no
 
 cache:
   - "%SCONS_CACHE_ROOT%"

@@ -36,7 +36,7 @@
 
 #include <png.h>
 
-static void _write_png_data(png_structp png_ptr, png_bytep data, png_size_t p_length) {
+static void _write_png_file_data(png_structp png_ptr, png_bytep data, png_size_t p_length) {
 
 	FileAccess *f = (FileAccess *)png_get_io_ptr(png_ptr);
 	f->store_buffer((const uint8_t *)data, p_length);
@@ -125,7 +125,7 @@ Error ResourceSaverPNG::save_image(const String &p_path, Image &p_img) {
 		ERR_FAIL_V(err);
 	}
 
-	png_set_write_fn(png_ptr, f, _write_png_data, NULL);
+	png_set_write_fn(png_ptr, f, _write_png_file_data, NULL);
 
 	/* write header */
 	if (setjmp(png_jmpbuf(png_ptr))) {

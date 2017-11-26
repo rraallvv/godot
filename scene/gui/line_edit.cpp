@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "line_edit.h"
+#include "core/char_utils.h"
 #include "label.h"
 #include "os/keyboard.h"
 #include "os/os.h"
@@ -36,11 +37,6 @@
 #ifdef TOOLS_ENABLED
 #include "editor/editor_settings.h"
 #endif
-
-static bool _is_text_char(CharType c) {
-
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-}
 
 void LineEdit::_input_event(InputEvent p_event) {
 

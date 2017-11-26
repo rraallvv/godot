@@ -29,22 +29,8 @@
 /*************************************************************************/
 
 #include "cp_player_data.h"
+#include "cp_player_utils.h"
 #include "cp_sample_manager.h"
-
-#define RANDOM_MAX 2147483647
-
-static inline int32_t cp_random_generate(int32_t *seed) {
-	int32_t k;
-	int32_t s = (int32_t)(*seed);
-	if (s == 0)
-		s = 0x12345987;
-	k = s / 127773;
-	s = 16807 * (s - k * 127773) - 2836 * k;
-	if (s < 0)
-		s += 2147483647;
-	(*seed) = (int32_t)s;
-	return (int32_t)(s & RANDOM_MAX);
-}
 
 void CPPlayer::process_new_note(int p_track, uint8_t p_note) { // if there's really a new note....
 

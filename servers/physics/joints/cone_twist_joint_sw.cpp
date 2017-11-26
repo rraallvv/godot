@@ -50,40 +50,7 @@ Written by: Marcus Hennix
 */
 
 #include "cone_twist_joint_sw.h"
-
-static void plane_space(const Vector3 &n, Vector3 &p, Vector3 &q) {
-
-	if (Math::abs(n.z) > 0.707106781186547524400844362) {
-		// choose p in y-z plane
-		real_t a = n[1] * n[1] + n[2] * n[2];
-		real_t k = 1.0 / Math::sqrt(a);
-		p = Vector3(0, -n[2] * k, n[1] * k);
-		// set q = n x p
-		q = Vector3(a * k, -n[0] * p[2], n[0] * p[1]);
-	} else {
-		// choose p in x-y plane
-		real_t a = n.x * n.x + n.y * n.y;
-		real_t k = 1.0 / Math::sqrt(a);
-		p = Vector3(-n.y * k, n.x * k, 0);
-		// set q = n x p
-		q = Vector3(-n.z * p.y, n.z * p.x, a * k);
-	}
-}
-
-static _FORCE_INLINE_ real_t atan2fast(real_t y, real_t x) {
-	real_t coeff_1 = Math_PI / 4.0f;
-	real_t coeff_2 = 3.0f * coeff_1;
-	real_t abs_y = Math::abs(y);
-	real_t angle;
-	if (x >= 0.0f) {
-		real_t r = (x - abs_y) / (x + abs_y);
-		angle = coeff_1 - coeff_1 * r;
-	} else {
-		real_t r = (x + abs_y) / (abs_y - x);
-		angle = coeff_2 - coeff_1 * r;
-	}
-	return (y < 0.0f) ? -angle : angle;
-}
+#include "joint_utils.h"
 
 ConeTwistJointSW::ConeTwistJointSW(BodySW *rbA, BodySW *rbB, const Transform &rbAFrame, const Transform &rbBFrame)
 	: JointSW(_arr, 2) {

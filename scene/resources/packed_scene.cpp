@@ -31,6 +31,7 @@
 #include "core/core_string_names.h"
 #include "globals.h"
 #include "io/resource_loader.h"
+#include "resource_utils.h"
 #include "scene/2d/node_2d.h"
 #include "scene/3d/spatial.h"
 #include "scene/gui/control.h"
@@ -294,16 +295,6 @@ Node *SceneState::instance(bool p_gen_edit_state) const {
 	}
 
 	return ret_nodes[0];
-}
-
-static int _nm_get_string(const String &p_string, Map<StringName, int> &name_map) {
-
-	if (name_map.has(p_string))
-		return name_map[p_string];
-
-	int idx = name_map.size();
-	name_map[p_string] = idx;
-	return idx;
 }
 
 static int _vm_get_variant(const Variant &p_variant, HashMap<Variant, int, VariantHasher, VariantComparator> &variant_map) {

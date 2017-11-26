@@ -30,6 +30,7 @@
 #include "doc_data.h"
 #include "version.h"
 
+#include "doc_utils.h"
 #include "global_constants.h"
 #include "globals.h"
 #include "io/compression.h"
@@ -866,14 +867,6 @@ Error DocData::_load(Ref<XMLParser> parser) {
 	}
 
 	return OK;
-}
-
-static void _write_string(FileAccess *f, int p_tablevel, const String &p_string) {
-
-	String tab;
-	for (int i = 0; i < p_tablevel; i++)
-		tab += "\t";
-	f->store_string(tab + p_string + "\n");
 }
 
 Error DocData::save(const String &p_path) {

@@ -279,6 +279,12 @@ def configure(env):
         # This detection function needs the tools env (that is env['ENV'], not SCons's env), and that is why it's this far bellow in the code
         compiler_version_str = methods.detect_visual_c_compiler_version(env['ENV'])
 
+        clcache_path = os.environ.get("CLCACHE")
+        if clcache_path != None:
+            env["CLCACHE_CL"] = "\"" + VC_PATH + "BIN\\" + compiler_version_str + "\""
+            env["CC"] = clcache_path
+            env["CXX"] = clcache_path
+
         # Note: this detection/override code from here onward should be here instead of in SConstruct because it's platform and compiler specific (MSVC/Windows)
         if(env["bits"] != "default"):
             print("Error: bits argument is disabled for MSVC")

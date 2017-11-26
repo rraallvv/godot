@@ -29,6 +29,7 @@
 /*************************************************************************/
 #include "scene_preloader.h"
 #include "globals.h"
+#include "resource_utils.h"
 
 bool ScenePreloader::can_instance() const {
 
@@ -115,16 +116,6 @@ Node *ScenePreloader::instance() const {
 	}
 
 	return ret_nodes[0];
-}
-
-static int _nm_get_string(const String &p_string, Map<StringName, int> &name_map) {
-
-	if (name_map.has(p_string))
-		return name_map[p_string];
-
-	int idx = name_map.size();
-	name_map[p_string] = idx;
-	return idx;
 }
 
 static int _vm_get_variant(const Variant &p_variant, HashMap<Variant, int, VariantHasher> &variant_map) {

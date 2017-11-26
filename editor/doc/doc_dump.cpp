@@ -28,17 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "doc_dump.h"
+#include "doc_utils.h"
 #include "os/file_access.h"
 #include "scene/main/node.h"
 #include "version.h"
-
-static void _write_string(FileAccess *f, int p_tablevel, const String &p_string) {
-
-	String tab;
-	for (int i = 0; i < p_tablevel; i++)
-		tab += "\t";
-	f->store_string(tab + p_string + "\n");
-}
 
 struct _ConstantSort {
 

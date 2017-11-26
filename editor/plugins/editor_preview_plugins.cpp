@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_preview_plugins.h"
+#include "core/char_utils.h"
 #include "editor/editor_scale.h"
 #include "editor/editor_settings.h"
 #include "io/file_access_memory.h"
@@ -380,11 +381,6 @@ EditorMaterialPreviewPlugin::~EditorMaterialPreviewPlugin() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
-
-static bool _is_text_char(CharType c) {
-
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
-}
 
 bool EditorScriptPreviewPlugin::handles(const String &p_type) const {
 
