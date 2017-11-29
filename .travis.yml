@@ -19,21 +19,21 @@ matrix:
     - env: GODOT_TARGET=x11 TOOLS=yes CACHE_NAME=${GODOT_TARGET}-gcc-tools
       os: linux
       compiler: gcc
-    #- env: GODOT_TARGET=x11 TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
-    #  os: linux
-    #  compiler: clang
-    #- env: GODOT_TARGET=windows TOOLS=yes CACHE_NAME=${GODOT_TARGET}-gcc-tools
-    #  os: linux
-    #  compiler: gcc
+    - env: GODOT_TARGET=x11 TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
+      os: linux
+      compiler: clang
+    - env: GODOT_TARGET=windows TOOLS=yes CACHE_NAME=${GODOT_TARGET}-gcc-tools
+      os: linux
+      compiler: gcc
     - env: GODOT_TARGET=android TOOLS=no CACHE_NAME=${GODOT_TARGET}-gcc
       os: linux
       compiler: gcc
     - env: GODOT_TARGET=osx TOOLS=yes CACHE_NAME=${GODOT_TARGET}-clang-tools
       os: osx
       compiler: clang
-    #- env: GODOT_TARGET=iphone TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
-    #  os: osx
-    #  compiler: clang
+    - env: GODOT_TARGET=iphone TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
+      os: osx
+      compiler: clang
 
 addons:
   apt:
@@ -67,11 +67,18 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$GODOT_TARGET" = "android" ]; then
       misc/travis/android-tools-osx.sh;
     fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$GODOT_TARGET" = "windows" ]; then
+      sudo apt-get install mingw-w64;
+    fi
 
 before_script:
   - if [ "$GODOT_TARGET" = "android" ]; then
       export ANDROID_HOME=$TRAVIS_BUILD_DIR/godot-dev/build-tools/android-sdk;
       export ANDROID_NDK_ROOT=$TRAVIS_BUILD_DIR/godot-dev/build-tools/android-ndk;
+    fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$GODOT_TARGET" = "windows" ]; then
+      export MINGW32_PREFIX="/usr/bin/i686-w64-mingw32-";
+      export MINGW64_PREFIX="/usr/bin/x86_64-w64-mingw32-";
     fi
 
 script:
