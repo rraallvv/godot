@@ -1,0 +1,24 @@
+format_version: 1.4.0
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  #- PROJECT_TITLE: BitriseSampleWithYML
+  #- XCODE_PROJECT_PATH: ./${PROJECT_TITLE}.xcodeproj
+  #- XCODE_PROJECT_SCHEME: ${PROJECT_TITLE}
+  # in a normal project you should moved these into the
+  #  hidden .bitrise.secrets.yml file, so that it's not stored
+  #  in your code repository
+  #- BITRISE_KEYCHAIN_PATH: $HOME/Library/Keychains/login.keychain
+  #- BITRISE_KEYCHAIN_PASSWORD: vagrant
+
+workflows:
+
+  build:
+    steps:
+    - script:
+        title: Run Xcode analyze
+        inputs:
+        - content: |-
+            #!/bin/bash
+            echo "-> build"
