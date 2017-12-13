@@ -14,8 +14,10 @@ app:
   envs:
     - SCONS_CACHE: $HOME/.scons_cache
     - SCONS_CACHE_LIMIT: 1024
+    - CC: clang
+    - CXX: clang++
     - GODOT_TARGET: osx
-    - CXX: clang
+    - TOOLS: yes
 
 workflows:
   primary:
@@ -29,9 +31,15 @@ workflows:
 
   build:
     steps:
+      - cache-pull: {}
       - script@1.1.5:
-          title: My title
+          title: Build script
           inputs:
             - content: |-
+                mkdir -p $SCONS_CACHE
                 misc/bitrise/scons-local-osx.sh
-                scons -j 2 platform=$GODOT_TARGET CXX=$CXX builtin_openssl=yes verbose=yes progress=no
+                scons -j 2 CC=$CC CXX=$CXX platform=$GODOT_TARGET TOOLS=$TOOLS verbose=yes progress=no;
+      - cache-push:
+          inputs:
+            - cache_paths: |-
+                $SCONS_CACHE
