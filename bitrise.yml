@@ -10,6 +10,13 @@ trigger_map:
   - pull_request_source_branch: '*'
     workflow: primary
 
+app:
+  envs:
+    - SCONS_CACHE: $HOME/.scons_cache
+    - SCONS_CACHE_LIMIT: 1024
+    - GODOT_TARGET: osx
+    - CXX: clang
+
 workflows:
   primary:
     steps:
@@ -26,4 +33,5 @@ workflows:
           title: My title
           inputs:
             - content: |-
-                echo "-> The content"
+                misc/bitrise/scons-local-osx.sh
+                scons -j 2 platform=$GODOT_TARGET CXX=$CXX builtin_openssl=yes verbose=yes progress=no
