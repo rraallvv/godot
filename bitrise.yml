@@ -1,0 +1,45 @@
+format_version: "4"
+
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+project_type: macos
+
+app:
+  envs:
+    - SCONS_CACHE_ROOT: $HOME/.scons_cache
+    - SCONS_CACHE_LIMIT: 1024
+    - CC: clang
+    - CXX: clang++
+
+workflows:
+  _build:
+    steps:
+      - cache-pull: {}
+      - script:
+          title: Build script
+          inputs:
+            - content: |-
+                mkdir -p $SCONS_CACHE
+                misc/bitrise/scons-local-osx.sh
+                scons -j 2 CC=$CC CXX=$CXX platform=$GODOT_TARGET TOOLS=$TOOLS verbose=yes progress=no;
+      - cache-push:
+          inputs:
+            - cache_paths: |-
+                $SCONS_CACHE_ROOT
+
+  osx:
+    envs:
+    - SCONS_CACHE: $SCONS_CACHE_ROOT/osx
+    - GODOT_TARGET: osx
+    - TOOLS: yes
+    after_run:
+      - _build
+
+  iphone:
+    envs:
+    - SCONS_CACHE: $SCONS_CACHE_ROOT/iphone
+    - GODOT_TARGET: iphone
+    - TOOLS: no
+    after_run:
+      - _build
+ 
