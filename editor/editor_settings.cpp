@@ -388,6 +388,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("text_editor/files/restore_scripts_on_load", true);
 	_initial_set("text_editor/completion/complete_file_paths", true);
 
+	_initial_set("docks/scene_tree/open_editor_for_selected_node", false);
 	_initial_set("docks/scene_tree/start_create_dialog_fully_expanded", false);
 	_initial_set("docks/scene_tree/draw_relationship_lines", false);
 	_initial_set("docks/scene_tree/relationship_line_color", Color::html("464646"));
