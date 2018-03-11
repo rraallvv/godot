@@ -1612,7 +1612,7 @@ void EditorNode::_edit_current() {
 		else if (main_plugin != editor_plugin_screen && (!ScriptEditor::get_singleton() || !ScriptEditor::get_singleton()->is_visible_in_tree() || ScriptEditor::get_singleton()->can_take_away_focus())) {
 			// update screen main_plugin
 
-			if (!changing_scene) {
+			if (!changing_scene && bool(EditorSettings::get_singleton()->get("docks/scene_tree/open_editor_for_selected_node"))) {
 
 				if (editor_plugin_screen)
 					editor_plugin_screen->make_visible(false);
