@@ -830,6 +830,10 @@ void SceneTreeDock::_node_selected() {
 
 	Node *node = scene_tree->get_selected();
 
+	if (!bool(EditorSettings::get_singleton()->get("docks/scene_tree/single_click_to_edit_selected_node"))) {
+		editor->set_skip_editor();
+	}
+
 	if (!node) {
 
 		editor->push_item(NULL);
@@ -1870,6 +1874,10 @@ void SceneTreeDock::_focus_node() {
 
 	Node *node = scene_tree->get_selected();
 	ERR_FAIL_COND(!node);
+
+	if (!bool(EditorSettings::get_singleton()->get("docks/scene_tree/single_click_to_edit_selected_node"))) {
+		editor->show_editor(node);
+	}
 
 	if (node->is_class("CanvasItem")) {
 		CanvasItemEditorPlugin *editor = Object::cast_to<CanvasItemEditorPlugin>(editor_data->get_editor("2D"));
