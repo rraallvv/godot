@@ -1568,24 +1568,29 @@ void EditorNode::_edit_current() {
 
 	/* Take care of PLUGIN EDITOR */
 
-	EditorPlugin *main_plugin = editor_data.get_editor(current_obj);
+	if (bool(EditorSettings::get_singleton()->get("docks/scene_tree/open_editor_for_selected_node")))
+		open_editor(current_obj);
+}
+
+void EditorNode::open_editor(Object *p_current_obj) {
+	EditorPlugin *main_plugin = editor_data.get_editor(p_current_obj);
 
 	if (main_plugin) {
 
 		// special case if use of external editor is true
-		if (main_plugin->get_name() == "Script" && (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")) || overrides_external_editor(current_obj))) {
-			main_plugin->edit(current_obj);
+		if (main_plugin->get_name() == "Script" && (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")) || overrides_external_editor(p_current_obj))) {
+			main_plugin->edit(p_current_obj);
 		}
 
 		else if (main_plugin != editor_plugin_screen && (!ScriptEditor::get_singleton() || !ScriptEditor::get_singleton()->is_visible_in_tree() || ScriptEditor::get_singleton()->can_take_away_focus())) {
 			// update screen main_plugin
 
-			if (!changing_scene && bool(EditorSettings::get_singleton()->get("docks/scene_tree/open_editor_for_selected_node"))) {
+			if (!changing_scene) {
 
 				if (editor_plugin_screen)
 					editor_plugin_screen->make_visible(false);
 				editor_plugin_screen = main_plugin;
-				editor_plugin_screen->edit(current_obj);
+				editor_plugin_screen->edit(p_current_obj);
 
 				editor_plugin_screen->make_visible(true);
 
@@ -1602,17 +1607,17 @@ void EditorNode::_edit_current() {
 
 		} else {
 
-			editor_plugin_screen->edit(current_obj);
+			editor_plugin_screen->edit(p_current_obj);
 		}
 	}
 
-	Vector<EditorPlugin *> sub_plugins = editor_data.get_subeditors(current_obj);
+	Vector<EditorPlugin *> sub_plugins = editor_data.get_subeditors(p_current_obj);
 
 	if (!sub_plugins.empty()) {
 		_display_top_editors(false);
 
 		_set_top_editors(sub_plugins);
-		_set_editing_top_editors(current_obj);
+		_set_editing_top_editors(p_current_obj);
 		_display_top_editors(true);
 
 	} else if (!editor_plugins_over->get_plugins_list().empty()) {
@@ -1623,6 +1628,9 @@ void EditorNode::_edit_current() {
 	object_menu->set_disabled(false);
 
 	PopupMenu *p = object_menu->get_popup();
+
+	bool is_resource = p_current_obj->is_class("Resource");
+	bool is_node = p_current_obj->is_class("Node");
 
 	p->clear();
 	p->add_shortcut(ED_SHORTCUT("property_editor/expand_all", TTR("Expand all properties")), EXPAND_ALL);
@@ -1645,7 +1653,7 @@ void EditorNode::_edit_current() {
 	}
 
 	List<MethodInfo> methods;
-	current_obj->get_method_list(&methods);
+	p_current_obj->get_method_list(&methods);
 
 	if (!methods.empty()) {
 

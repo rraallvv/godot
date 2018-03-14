@@ -678,6 +678,7 @@ public:
 	void edit_node(Node *p_node);
 	void edit_resource(const Ref<Resource> &p_resource);
 	void open_resource(const String &p_type = "");
+	void open_editor(Object *p_current_obj);
 
 	void save_resource_in_path(const Ref<Resource> &p_resource, const String &p_path);
 	void save_resource(const Ref<Resource> &p_resource);

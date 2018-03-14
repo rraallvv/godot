@@ -1832,6 +1832,10 @@ void SceneTreeDock::_focus_node() {
 	Node *node = scene_tree->get_selected();
 	ERR_FAIL_COND(!node);
 
+	if (!bool(EditorSettings::get_singleton()->get("docks/scene_tree/open_editor_for_selected_node"))) {
+		editor->open_editor(node);
+	}
+
 	if (node->is_class("CanvasItem")) {
 		CanvasItemEditorPlugin *editor = Object::cast_to<CanvasItemEditorPlugin>(editor_data->get_editor("2D"));
 		editor->get_canvas_item_editor()->focus_selection();
